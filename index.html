@@ -123,13 +123,30 @@
         const minusBtn = document.getElementById('minus-btn');
 
         // --- BERECHNUNGSGRUNDLAGEN ---
-        // Sport-Modus: 26.4 km bei 59% Akkuverbrauch (100% -> 41%)
         const sportKmPerPercent = 26.4 / 59; // ca. 0.44745 km pro Prozent Akku
-
-        // Eco-Modus: Annahme - 75% mehr Reichweite als im Sport-Modus.
-        // Dieser Wert kann angepasst werden, sobald du Erfahrungswerte hast.
         const ecoFactor = 1.75; 
         const ecoKmPerPercent = sportKmPerPercent * ecoFactor;
+
+        // Funktion zum Speichern des Zustands in localStorage
+        function saveState() {
+            const state = {
+                battery: batterySlider.value,
+                mode: document.querySelector('input[name="mode"]:checked').value,
+                throttled: capacityToggle.checked
+            };
+            localStorage.setItem('surRonRangeState', JSON.stringify(state));
+        }
+
+        // Funktion zum Laden des Zustands aus localStorage
+        function loadState() {
+            const savedState = localStorage.getItem('surRonRangeState');
+            if (savedState) {
+                const state = JSON.parse(savedState);
+                batterySlider.value = state.battery;
+                capacityToggle.checked = state.throttled;
+                document.querySelector(`input[name="mode"][value="${state.mode}"]`).checked = true;
+            }
+        }
 
         // Funktion zur Berechnung und Anzeige der Reichweite
         function calculateRange() {
@@ -139,38 +156,37 @@
             
             let usableBatteryLevel = actualBatteryLevel;
 
-            // Wenn der Toggle aktiv ist, werden die unteren 10% ignoriert.
             if (isThrottledMode) {
-                // Die nutzbare Reichweite wird so berechnet, als wären 10% = 0% und 100% = 90%.
                 usableBatteryLevel = Math.max(0, actualBatteryLevel - 10);
             }
 
             let remainingRange = 0;
-
             if (selectedMode === 'sport') {
                 remainingRange = usableBatteryLevel * sportKmPerPercent;
             } else {
                 remainingRange = usableBatteryLevel * ecoKmPerPercent;
             }
 
-            // UI aktualisieren
-            // Die Anzeige zeigt immer den echten Akkustand, die Berechnung nutzt den angepassten Wert.
             batteryLevelDisplay.textContent = `${actualBatteryLevel}%`;
-            rangeOutput.textContent = remainingRange.toFixed(1); // Anzeige auf eine Nachkommastelle
+            rangeOutput.textContent = remainingRange.toFixed(1);
+        }
+        
+        function updateAndSave() {
+            calculateRange();
+            saveState();
         }
 
         // Event Listener hinzufügen
-        batterySlider.addEventListener('input', calculateRange);
-        capacityToggle.addEventListener('change', calculateRange);
+        batterySlider.addEventListener('input', updateAndSave);
+        capacityToggle.addEventListener('change', updateAndSave);
         modeRadios.forEach(radio => {
-            radio.addEventListener('change', calculateRange);
+            radio.addEventListener('change', updateAndSave);
         });
 
         plusBtn.addEventListener('click', () => {
             let currentValue = parseInt(batterySlider.value);
             if (currentValue < 100) {
                 batterySlider.value = currentValue + 1;
-                // Manually trigger the 'input' event on the slider
                 batterySlider.dispatchEvent(new Event('input'));
             }
         });
@@ -179,13 +195,16 @@
             let currentValue = parseInt(batterySlider.value);
             if (currentValue > 0) {
                 batterySlider.value = currentValue - 1;
-                // Manually trigger the 'input' event on the slider
                 batterySlider.dispatchEvent(new Event('input'));
             }
         });
 
-        // Initiale Berechnung beim Laden der Seite
-        document.addEventListener('DOMContentLoaded', calculateRange);
+        // Initiale Berechnung und Laden des Zustands beim Start
+        document.addEventListener('DOMContentLoaded', () => {
+            loadState();
+            calculateRange();
+            saveState(); // Speichert den initialen Zustand (geladen oder Standard)
+        });
     </script>
 
 </body>
