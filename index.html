@@ -184,21 +184,41 @@
                 const sportPercentNeeded = distanceKm / sportKmPerPercent;
                 const ecoPercentNeeded = distanceKm / ecoKmPerPercent;
                 const currentBattery = parseInt(batterySlider.value);
+                
+                // One-way
                 const sportArrival = currentBattery - sportPercentNeeded;
                 const ecoArrival = currentBattery - ecoPercentNeeded;
 
+                // Round trip
+                const sportRoundTripPossible = currentBattery >= (sportPercentNeeded * 2);
+                const ecoRoundTripPossible = currentBattery >= (ecoPercentNeeded * 2);
+                const sportRoundTripArrival = currentBattery - (sportPercentNeeded * 2);
+                const ecoRoundTripArrival = currentBattery - (ecoPercentNeeded * 2);
+
                 routeResults.innerHTML = `
-                    <p class="text-lg font-bold">Distanz: ${distanceKm.toFixed(1)} km</p>
-                    <div class="grid grid-cols-2 gap-4 pt-2">
+                    <p class="text-lg font-bold">Distanz (Ein Weg): ${distanceKm.toFixed(1)} km</p>
+                    <div class="grid grid-cols-2 gap-4 pt-2 text-center">
+                        <!-- Sport Mode -->
                         <div>
-                            <p class="text-sm text-gray-400">Ankunft (Sport)</p>
+                            <p class="font-bold text-orange-400">Sport</p>
+                            <p class="text-sm text-gray-400 mt-2">Ankunft (Hinweg)</p>
                             <p class="text-2xl font-bold ${sportArrival < 10 ? 'text-red-500' : 'text-white'}">${sportArrival.toFixed(0)}%</p>
-                            <p class="text-xs ${sportArrival * 2 < 0 ? 'text-red-500' : 'text-gray-400'}">${(sportArrival * 2 < 0) ? 'Rückweg unmöglich' : ''}</p>
+                            <p class="text-sm text-gray-400 mt-2">Ankunft (Rückweg)</p>
+                            ${sportRoundTripPossible
+                                ? `<p class="text-2xl font-bold ${sportRoundTripArrival < 10 ? 'text-red-500' : 'text-white'}">${sportRoundTripArrival.toFixed(0)}%</p>`
+                                : `<p class="text-lg font-bold text-red-500">Nicht möglich</p>`
+                            }
                         </div>
+                        <!-- Eco Mode -->
                         <div>
-                            <p class="text-sm text-gray-400">Ankunft (Eco)</p>
+                            <p class="font-bold text-orange-400">Eco</p>
+                            <p class="text-sm text-gray-400 mt-2">Ankunft (Hinweg)</p>
                             <p class="text-2xl font-bold ${ecoArrival < 10 ? 'text-red-500' : 'text-white'}">${ecoArrival.toFixed(0)}%</p>
-                            <p class="text-xs ${ecoArrival * 2 < 0 ? 'text-red-500' : 'text-gray-400'}">${(ecoArrival * 2 < 0) ? 'Rückweg unmöglich' : ''}</p>
+                            <p class="text-sm text-gray-400 mt-2">Ankunft (Rückweg)</p>
+                            ${ecoRoundTripPossible
+                                ? `<p class="text-2xl font-bold ${ecoRoundTripArrival < 10 ? 'text-red-500' : 'text-white'}">${ecoRoundTripArrival.toFixed(0)}%</p>`
+                                : `<p class="text-lg font-bold text-red-500">Nicht möglich</p>`
+                            }
                         </div>
                     </div>
                 `;
