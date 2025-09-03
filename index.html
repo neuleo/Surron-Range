@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Surron Reichweitenrechner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent; /* Verhindert das Aufblitzen bei Berührung auf Mobilgeräten */
+        }
+        /* Custom Styling für den Slider */
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid #f97316;
+            margin-top: -8px; /* Zentrierung des Thumbs */
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 4px solid #f97316;
+        }
+        .mode-label {
+            transition: all 0.2s ease-in-out;
+        }
+        /* Styling für das aktive Label */
+        input:checked + .mode-label {
+            background-color: #f97316;
+            color: #ffffff;
+            border-color: #f97316;
+        }
+    </style>
+</head>
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+
+    <div class="w-full max-w-md mx-auto bg-gray-800 rounded-3xl shadow-2xl overflow-hidden">
+        
+        <!-- Bild der Surron -->
+        <div class="bg-gray-700">
+             <!--  -->
+            <img src="https://placehold.co/600x400/1f2937/ffffff?text=SUR-RON" 
+                 alt="Surron E-Bike" 
+                 class="w-full h-auto object-cover"
+                 onerror="this.onerror=null;this.src='https://placehold.co/600x400/1f2937/ffffff?text=Surron+Bild+fehlt';">
+        </div>
+
+        <div class="p-6 md:p-8 space-y-6">
+            <!-- Titel -->
+            <div class="text-center">
+                <h1 class="text-2xl font-bold text-white">Reichweitenrechner</h1>
+                <p class="text-gray-400">Gib deinen aktuellen Akkustand an.</p>
+            </div>
+
+            <!-- Akkustand Anzeige -->
+            <div class="text-center">
+                <span id="battery-level-display" class="text-5xl font-black text-orange-500">100%</span>
+            </div>
+
+            <!-- Akku Slider -->
+            <div>
+                <input type="range" id="battery-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-orange-500">
+            </div>
+            
+            <!-- Fahrmodus Auswahl -->
+            <div>
+                <label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label>
+                <div class="flex justify-center bg-gray-700 rounded-xl p-1">
+                    <div class="w-1/2">
+                        <input type="radio" name="mode" id="mode-sport" value="sport" class="hidden" checked>
+                        <label for="mode-sport" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label>
+                    </div>
+                    <div class="w-1/2">
+                        <input type="radio" name="mode" id="mode-eco" value="eco" class="hidden">
+                        <label for="mode-eco" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Nutzbare Kapazität Toggle -->
+            <div class="pt-2">
+                <label for="capacity-toggle" class="flex items-center justify-center cursor-pointer">
+                    <div class="relative">
+                        <input type="checkbox" id="capacity-toggle" class="sr-only peer">
+                        <div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-orange-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div>
+                    </div>
+                    <span class="ml-3 text-sm font-medium text-gray-400">Leistungsdrossel (90% nutzbar)</span>
+                </label>
+            </div>
+
+            <!-- Ergebnis Anzeige -->
+            <div class="bg-gray-900 rounded-xl p-6 text-center">
+                <p class="text-gray-400 text-sm uppercase font-semibold">Verbleibende Reichweite</p>
+                <p class="text-4xl md:text-5xl font-extrabold text-white"><span id="range-output">44.7</span> km</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // DOM-Elemente abrufen
+        const batterySlider = document.getElementById('battery-slider');
+        const batteryLevelDisplay = document.getElementById('battery-level-display');
+        const rangeOutput = document.getElementById('range-output');
+        const modeRadios = document.querySelectorAll('input[name="mode"]');
+        const capacityToggle = document.getElementById('capacity-toggle');
+
+        // --- BERECHNUNGSGRUNDLAGEN ---
+        // Sport-Modus: 26.4 km bei 59% Akkuverbrauch (100% -> 41%)
+        const sportKmPerPercent = 26.4 / 59; // ca. 0.44745 km pro Prozent Akku
+
+        // Eco-Modus: Annahme - 75% mehr Reichweite als im Sport-Modus.
+        // Dieser Wert kann angepasst werden, sobald du Erfahrungswerte hast.
+        const ecoFactor = 1.75; 
+        const ecoKmPerPercent = sportKmPerPercent * ecoFactor;
+
+        // Funktion zur Berechnung und Anzeige der Reichweite
+        function calculateRange() {
+            const actualBatteryLevel = parseInt(batterySlider.value);
+            const selectedMode = document.querySelector('input[name="mode"]:checked').value;
+            const isThrottledMode = capacityToggle.checked;
+            
+            let usableBatteryLevel = actualBatteryLevel;
+
+            // Wenn der Toggle aktiv ist, werden die unteren 10% ignoriert.
+            if (isThrottledMode) {
+                // Die nutzbare Reichweite wird so berechnet, als wären 10% = 0% und 100% = 90%.
+                usableBatteryLevel = Math.max(0, actualBatteryLevel - 10);
+            }
+
+            let remainingRange = 0;
+
+            if (selectedMode === 'sport') {
+                remainingRange = usableBatteryLevel * sportKmPerPercent;
+            } else {
+                remainingRange = usableBatteryLevel * ecoKmPerPercent;
+            }
+
+            // UI aktualisieren
+            // Die Anzeige zeigt immer den echten Akkustand, die Berechnung nutzt den angepassten Wert.
+            batteryLevelDisplay.textContent = `${actualBatteryLevel}%`;
+            rangeOutput.textContent = remainingRange.toFixed(1); // Anzeige auf eine Nachkommastelle
+        }
+
+        // Event Listener hinzufügen
+        batterySlider.addEventListener('input', calculateRange);
+        capacityToggle.addEventListener('change', calculateRange);
+        modeRadios.forEach(radio => {
+            radio.addEventListener('change', calculateRange);
+        });
+
+        // Initiale Berechnung beim Laden der Seite
+        document.addEventListener('DOMContentLoaded', calculateRange);
+    </script>
+
+</body>
+</html>
+
