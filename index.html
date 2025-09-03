@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Surron Reichweitenrechner</title>
+    <link rel="stylesheet" href="style.css">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700;900&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
@@ -40,7 +40,7 @@
 
     <div class="w-full max-w-md mx-auto bg-gray-800 rounded-3xl shadow-2xl overflow-hidden my-8 sm:my-0 relative">
         
-        <button id="menu-button" class="absolute top-4 right-4 z-30 p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+        <button id="menu-button" class="absolute top-4 left-4 z-30 p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
             <svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             <svg id="menu-icon-close" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
@@ -61,7 +61,10 @@
         <!-- ===== Route Page ===== -->
         <div id="route-page" class="hidden">
             <div class="p-6 md:p-8 space-y-4">
-                <div class="text-center"><h1 class="text-2xl font-bold text-white">Routenplaner</h1><p class="text-gray-400">Plane eine Tour mit mehreren Stops.</p></div>
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-white pl-12">Routenplaner</h1>
+                    <button id="manage-favorites-btn" class="text-sm text-orange-400 hover:text-orange-500">Favoriten</button>
+                </div>
                 <div id="stops-container" class="space-y-4"></div>
                 <button id="add-stop-btn" class="w-full border-2 border-dashed border-gray-600 hover:border-orange-600 text-gray-400 font-bold py-2 px-4 rounded-lg focus:outline-none">+ Stop hinzufügen</button>
                 <button id="calculate-route-btn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">Route berechnen</button>
@@ -69,20 +72,30 @@
                 <div id="route-results"></div>
             </div>
         </div>
-    </div>
 
-    <!-- Save Place Modal -->
-    <div id="save-place-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-gray-800 rounded-lg p-6 w-11/12 max-w-sm space-y-4">
-            <h2 class="text-xl font-bold">Ort speichern</h2>
-            <p id="save-place-label" class="text-gray-400"></p>
-            <div>
-                <label for="place-name-input" class="block text-sm font-medium text-gray-400">Name des Ortes</label>
-                <input type="text" id="place-name-input" class="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-2 focus:ring-orange-500 focus:border-orange-500">
+        <!-- ===== Favorites Page ===== -->
+        <div id="favorites-page" class="hidden">
+            <div class="p-6 md:p-8 space-y-4">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-white pl-12">Favoriten verwalten</h1>
+                    <button id="back-to-route-btn" class="text-sm text-orange-400 hover:text-orange-500">Zurück</button>
+                </div>
+                <div id="favorites-list-container" class="space-y-2"></div>
             </div>
-            <div class="flex justify-end space-x-4">
-                <button id="cancel-save-btn" class="px-4 py-2 rounded-md text-white hover:bg-gray-700">Abbrechen</button>
-                <button id="confirm-save-btn" class="px-4 py-2 rounded-md bg-orange-600 text-white hover:bg-orange-700">Speichern</button>
+        </div>
+        <!-- ===== Save Favorite Page ===== -->
+        <div id="save-favorite-page" class="hidden">
+            <div class="p-6 md:p-8 space-y-4">
+                <h1 class="text-2xl font-bold text-white pl-12">Ort speichern</h1>
+                <p id="save-place-label" class="text-gray-400 p-2 bg-gray-700 rounded-md"></p>
+                <div>
+                    <label for="place-name-input" class="block text-sm font-medium text-gray-400">Name des Ortes</label>
+                    <input type="text" id="place-name-input" class="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-2 focus:ring-orange-500 focus:border-orange-500">
+                </div>
+                <div class="flex justify-end space-x-4 pt-4">
+                    <button id="cancel-save-btn" class="px-4 py-2 rounded-md text-white hover:bg-gray-700">Abbrechen</button>
+                    <button id="confirm-save-btn" class="px-4 py-2 rounded-md bg-orange-600 text-white hover:bg-orange-700">Speichern</button>
+                </div>
             </div>
         </div>
     </div>
