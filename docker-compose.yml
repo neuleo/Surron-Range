@@ -3,5 +3,5 @@ services:
   web:
     build: .
     ports:
-      - "80:80"
+      - "822:80"
     container_name: sur-ron-app
