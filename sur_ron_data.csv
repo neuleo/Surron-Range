@@ -3,3 +3,5 @@ Mode,Distance_km,Up_m,Down_m,start_soc,End_soc
 Sport,1.99,25,-42,100,99
 Sport,1.53,77,-2,99,94
 Sport,4.41,2,-93,94,86
+Eco,4.71,103,-22,86,77
+Eco,3.53,20,-39,77,71

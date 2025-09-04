@@ -19,7 +19,12 @@
         input[type="range"]::-moz-range-thumb { width: 24px; height: 24px; background: #ffffff; border-radius: 50%; cursor: pointer; border: 4px solid #f97316; }
         .mode-label { transition: all 0.2s ease-in-out; }
         input:checked + .mode-label { background-color: #f97316; color: #ffffff; border-color: #f97316; }
-        #map { height: 250px; border-radius: 1rem; z-index: 10; }
+        #map { height: 250px; border-radius: 1rem; z-index: 10; transition: height 0.3s ease-in-out; }
+        #map.large { height: 500px; }
+        @media (min-width: 1024px) {
+            #map { height: 500px; }
+            #map.large { height: 700px; }
+        }
         .leaflet-control-attribution { font-size: 0.7rem !important; }
         .leaflet-control-attribution a { color: #f97316 !important; }
         .autocomplete-suggestions { max-height: 200px; overflow-y: auto; background-color: #2d3748; border: 1px solid #4a5568; border-radius: 0.375rem; z-index: 999; }
@@ -38,35 +43,75 @@
 </head>
 <body class="bg-gray-900 text-white flex items-start sm:items-center justify-center min-h-screen">
 
-    <div class="w-full max-w-md mx-auto bg-gray-800 rounded-3xl shadow-2xl overflow-hidden my-8 sm:my-0 relative">
+    <div class="w-full max-w-md md:max-w-2xl lg:max-w-7xl mx-auto bg-gray-800 rounded-3xl shadow-2xl my-8 sm:my-0 relative">
         
-        <button id="menu-button" class="absolute top-4 right-4 z-30 p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500">
+        <button id="menu-button" class="absolute top-4 right-4 z-30 p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 lg:hidden">
             <svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             <svg id="menu-icon-close" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
 
-        <!-- ===== Calculator Page ===== -->
-        <div id="calculator-page">
-            <div class="bg-gray-700"><img src="https://placehold.co/600x300/1f2937/ffffff?text=SUR-RON" alt="Surron E-Bike" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x300/1f2937/ffffff?text=Surron+Bild+fehlt';"></div>
-            <div class="p-6 md:p-8 space-y-6">
-                <div class="text-center"><h1 class="text-2xl font-bold text-white">Reichweitenrechner</h1><p class="text-gray-400">Gib deinen aktuellen Akkustand an.</p></div>
-                <div class="text-center"><div class="flex items-center justify-center space-x-4"><button id="minus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">-</button><span id="battery-level-display" class="text-5xl font-black text-orange-500 w-32 text-center">100%</span><button id="plus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">+</button></div></div>
-                <div><input type="range" id="battery-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-orange-500"></div>
-                <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label><div class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="mode" id="mode-sport" value="sport" class="hidden" checked><label for="mode-sport" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label></div><div class="w-1/2"><input type="radio" name="mode" id="mode-eco" value="eco" class="hidden"><label for="mode-eco" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label></div></div></div>
-                <div class="pt-2"><label for="capacity-toggle" class="flex items-center justify-center cursor-pointer"><div class="relative"><input type="checkbox" id="capacity-toggle" class="sr-only peer"><div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-orange-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></div><span class="ml-3 text-sm font-medium text-gray-400">Leistungsdrossel (90% nutzbar)</span></label></div>
-                <div class="bg-gray-900 rounded-xl p-6 text-center"><p class="text-gray-400 text-sm uppercase font-semibold">Verbleibende Reichweite</p><p class="text-4xl md:text-5xl font-extrabold text-white"><span id="range-output">44.7</span> km</p></div>
+        <!-- Mobile Layout -->
+        <div class="lg:hidden">
+            <!-- ===== Calculator Page ===== -->
+            <div id="calculator-page">
+                <div class="bg-gray-700 rounded-t-3xl"><img src="https://placehold.co/600x300/1f2937/ffffff?text=SUR-RON" alt="Surron E-Bike" class="w-full h-auto object-cover rounded-t-3xl" onerror="this.onerror=null;this.src='https://placehold.co/600x300/1f2937/ffffff?text=Surron+Bild+fehlt';"></div>
+                <div class="p-6 md:p-8 space-y-6">
+                    <div class="text-center"><h1 class="text-2xl font-bold text-white">Reichweitenrechner</h1><p class="text-gray-400">Gib deinen aktuellen Akkustand an.</p></div>
+                    <div class="text-center"><div class="flex items-center justify-center space-x-4"><button id="minus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">-</button><span id="battery-level-display" class="text-5xl font-black text-orange-500 w-32 text-center">100%</span><button id="plus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">+</button></div></div>
+                    <div><input type="range" id="battery-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-orange-500"></div>
+                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label><div class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="mode" id="mode-sport" value="sport" class="hidden" checked><label for="mode-sport" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label></div><div class="w-1/2"><input type="radio" name="mode" id="mode-eco" value="eco" class="hidden"><label for="mode-eco" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label></div></div></div>
+                    <div class="pt-2"><label for="capacity-toggle" class="flex items-center justify-center cursor-pointer"><div class="relative"><input type="checkbox" id="capacity-toggle" class="sr-only peer"><div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-orange-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></div><span class="ml-3 text-sm font-medium text-gray-400">Leistungsdrossel (90% nutzbar)</span></label></div>
+                    <div class="bg-gray-900 rounded-xl p-6 text-center"><p class="text-gray-400 text-sm uppercase font-semibold">Verbleibende Reichweite</p><p class="text-4xl md:text-5xl font-extrabold text-white"><span id="range-output">44.7</span> km</p></div>
+                </div>
+            </div>
+
+            <!-- ===== Route Page ===== -->
+            <div id="route-page" class="hidden">
+                <div class="p-6 md:p-8">
+                    <div class="space-y-4">
+                        <div class="text-center"><h1 class="text-2xl font-bold text-white">Routenplaner</h1><p class="text-gray-400">Plane eine Tour mit mehreren Stops.</p></div>
+                        <div id="stops-container" class="space-y-4"></div>
+                        <button id="add-stop-btn" class="w-full border-2 border-dashed border-gray-600 hover:border-orange-600 text-gray-400 font-bold py-2 px-4 rounded-lg focus:outline-none">+ Stop hinzufügen</button>
+                        <div class="flex items-center space-x-2">
+                            <button id="calculate-route-btn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">Route berechnen</button>
+                            <button id="toggle-map-size-btn" class="flex-shrink-0 p-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500" title="Karte vergrößern/verkleinern">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="h-6 w-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div id="map"></div>
+                        <div id="route-results"></div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- ===== Route Page ===== -->
-        <div id="route-page" class="hidden">
-            <div class="p-6 md:p-8 space-y-4">
+        <!-- Desktop Layout -->
+        <div class="hidden lg:flex p-8 space-x-8">
+            <!-- Route Planner Column -->
+            <div class="w-1/2 space-y-4">
                 <div class="text-center"><h1 class="text-2xl font-bold text-white">Routenplaner</h1><p class="text-gray-400">Plane eine Tour mit mehreren Stops.</p></div>
-                <div id="stops-container" class="space-y-4"></div>
-                <button id="add-stop-btn" class="w-full border-2 border-dashed border-gray-600 hover:border-orange-600 text-gray-400 font-bold py-2 px-4 rounded-lg focus:outline-none">+ Stop hinzufügen</button>
-                <button id="calculate-route-btn" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">Route berechnen</button>
-                <div id="map"></div>
-                <div id="route-results"></div>
+                <div id="stops-container-desktop" class="space-y-4"></div>
+                <button id="add-stop-btn-desktop" class="w-full border-2 border-dashed border-gray-600 hover:border-orange-600 text-gray-400 font-bold py-2 px-4 rounded-lg focus:outline-none">+ Stop hinzufügen</button>
+                <button id="calculate-route-btn-desktop" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">Route berechnen</button>
+                <div id="route-results-desktop"></div>
+            </div>
+            <!-- Right Column -->
+            <div class="w-1/2 flex flex-col space-y-8">
+                <!-- Calculator Controls -->
+                <div class="space-y-6">
+                    <div class="text-center"><h1 class="text-2xl font-bold text-white">Reichweitenrechner</h1><p class="text-gray-400">Gib deinen aktuellen Akkustand an.</p></div>
+                    <div class="text-center"><div class="flex items-center justify-center space-x-4"><button id="minus-btn-desktop" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">-</button><span id="battery-level-display-desktop" class="text-5xl font-black text-orange-500 w-32 text-center">100%</span><button id="plus-btn-desktop" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">+</button></div></div>
+                    <div><input type="range" id="battery-slider-desktop" min="0" max="100" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-orange-500"></div>
+                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label><div class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="mode-desktop" id="mode-sport-desktop" value="sport" class="hidden" checked><label for="mode-sport-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label></div><div class="w-1/2"><input type="radio" name="mode-desktop" id="mode-eco-desktop" value="eco" class="hidden"><label for="mode-eco-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label></div></div></div>
+                    <div class="pt-2"><label for="capacity-toggle-desktop" class="flex items-center justify-center cursor-pointer"><div class="relative"><input type="checkbox" id="capacity-toggle-desktop" class="sr-only peer"><div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-orange-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></div><span class="ml-3 text-sm font-medium text-gray-400">Leistungsdrossel (90% nutzbar)</span></label></div>
+                    <div class="bg-gray-900 rounded-xl p-6 text-center"><p class="text-gray-400 text-sm uppercase font-semibold">Verbleibende Reichweite</p><p class="text-4xl md:text-5xl font-extrabold text-white"><span id="range-output-desktop">44.7</span> km</p></div>
+                </div>
+                <!-- Map -->
+                <div class="flex-grow">
+                    <div id="map-desktop" class="h-full min-h-[400px] rounded-2xl bg-gray-700"></div>
+                </div>
             </div>
         </div>
     </div>
@@ -125,9 +170,23 @@
         const placeNameInput = document.getElementById('place-name-input');
         const cancelSaveBtn = document.getElementById('cancel-save-btn');
         const confirmSaveBtn = document.getElementById('confirm-save-btn');
+        const toggleMapSizeBtn = document.getElementById('toggle-map-size-btn');
+
+        // Desktop Elements
+        const batterySliderDesktop = document.getElementById('battery-slider-desktop');
+        const batteryLevelDisplayDesktop = document.getElementById('battery-level-display-desktop');
+        const rangeOutputDesktop = document.getElementById('range-output-desktop');
+        const modeRadiosDesktop = document.querySelectorAll('input[name="mode-desktop"]');
+        const capacityToggleDesktop = document.getElementById('capacity-toggle-desktop');
+        const plusBtnDesktop = document.getElementById('plus-btn-desktop');
+        const minusBtnDesktop = document.getElementById('minus-btn-desktop');
+        const calculateRouteBtnDesktop = document.getElementById('calculate-route-btn-desktop');
+        const stopsContainerDesktop = document.getElementById('stops-container-desktop');
+        const addStopBtnDesktop = document.getElementById('add-stop-btn-desktop');
+        const routeResultsDesktop = document.getElementById('route-results-desktop');
 
         // ===== State & Map Variables =====
-        let map, routeLayer, sortable;
+        let map, routeLayer, sortable, desktopMap, desktopRouteLayer, desktopSortable;
         let waypoints = [ { label: '', coords: null }, { label: '', coords: null } ];
         let placeToSave = {};
 
@@ -135,8 +194,26 @@
         const debounce = (func, delay) => { let timeout; return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
 
         // ===== State Management (localStorage) =====
-        function saveState() { const state = { battery: batterySlider.value, mode: document.querySelector('input[name="mode"]:checked').value, throttled: capacityToggle.checked }; localStorage.setItem('surRonRangeState', JSON.stringify(state)); }
-        function loadState() { const savedState = localStorage.getItem('surRonRangeState'); if (savedState) { const state = JSON.parse(savedState); batterySlider.value = state.battery; capacityToggle.checked = state.throttled; document.querySelector(`input[name="mode"][value="${state.mode}"]`).checked = true; } }
+        function saveState() { 
+            const state = { 
+                battery: batterySlider.value, 
+                mode: document.querySelector('input[name="mode"]:checked').value, 
+                throttled: capacityToggle.checked 
+            }; 
+            localStorage.setItem('surRonRangeState', JSON.stringify(state)); 
+        }
+        function loadState() { 
+            const savedState = localStorage.getItem('surRonRangeState'); 
+            if (savedState) { 
+                const state = JSON.parse(savedState); 
+                batterySlider.value = state.battery; 
+                batterySliderDesktop.value = state.battery;
+                capacityToggle.checked = state.throttled; 
+                capacityToggleDesktop.checked = state.throttled;
+                document.querySelector(`input[name="mode"][value="${state.mode}"]`).checked = true; 
+                document.querySelector(`input[name="mode-desktop"][value="${state.mode}"]`).checked = true;
+            } 
+        }
         function getSavedPlaces() { const places = localStorage.getItem('surRonSavedPlaces'); return places ? JSON.parse(places) : []; }
         
         function openSavePlaceModal(label, coords) {
@@ -163,19 +240,40 @@
         }
 
         // ===== Core Calculator Logic =====
-        function calculateRange() { const actualBatteryLevel = parseInt(batterySlider.value); const selectedMode = document.querySelector('input[name="mode"]:checked').value; const isThrottledMode = capacityToggle.checked; let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; batteryLevelDisplay.textContent = `${actualBatteryLevel}%`; rangeOutput.textContent = remainingRange.toFixed(1); }
+        function calculateRange() { 
+            const actualBatteryLevel = parseInt(batterySlider.value); 
+            const selectedMode = document.querySelector('input[name="mode"]:checked').value; 
+            const isThrottledMode = capacityToggle.checked; 
+            let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; 
+            let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; 
+            batteryLevelDisplay.textContent = `${actualBatteryLevel}%`; 
+            rangeOutput.textContent = remainingRange.toFixed(1); 
+        }
         function updateAndSave() { calculateRange(); saveState(); }
 
-        // ===== Map & Route Logic =====
-        function initMap() {
-            if (map) return;
-            map = L.map('map').setView([51.1657, 10.4515], 6);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(map);
+        function calculateRangeDesktop() { 
+            const actualBatteryLevel = parseInt(batterySliderDesktop.value); 
+            const selectedMode = document.querySelector('input[name="mode-desktop"]:checked').value; 
+            const isThrottledMode = capacityToggleDesktop.checked; 
+            let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; 
+            let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; 
+            batteryLevelDisplayDesktop.textContent = `${actualBatteryLevel}%`; 
+            rangeOutputDesktop.textContent = remainingRange.toFixed(1); 
+        }
+        function updateAndSaveDesktop() { calculateRangeDesktop(); saveState(); }
 
+        // ===== Map & Route Logic =====
+        function initMap(mapId = 'map') {
+            let mapInstance = L.map(mapId).setView([51.1657, 10.4515], 6);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(mapInstance);
+            return mapInstance;
+        }
+        
+        function setupMapInteractions(mapInstance) {
             let longPressTimeout;
-            map.on('mousedown', function (e) {
+            mapInstance.on('mousedown', function (e) {
                 longPressTimeout = setTimeout(async () => {
-                    map.closePopup();
+                    mapInstance.closePopup();
                     const { lat, lng } = e.latlng;
                     
                     try {
@@ -197,35 +295,36 @@
                                 waypoints.splice(waypoints.length - 1, 0, newWaypoint);
                             }
                             renderStops();
+                            if(window.innerWidth >= 1024) renderStopsDesktop();
                             
                             L.popup()
                              .setLatLng(e.latlng)
                              .setContent(`<b>${place.properties.name || 'Punkt'}</b><br>wurde zur Route hinzugefügt.`)
-                             .openOn(map);
+                             .openOn(mapInstance);
 
                         } else {
                             L.popup()
                              .setLatLng(e.latlng)
                              .setContent("Ort konnte nicht gefunden werden.")
-                             .openOn(map);
+                             .openOn(mapInstance);
                         }
                     } catch (error) {
                         console.error("Fehler beim Reverse Geocoding:", error);
                         L.popup()
                              .setLatLng(e.latlng)
                              .setContent("Fehler bei der Adresssuche.")
-                             .openOn(map);
+                             .openOn(mapInstance);
                     }
                 }, 750);
             });
 
-            map.on('mouseup', function () { clearTimeout(longPressTimeout); });
-            map.on('movestart', function () { clearTimeout(longPressTimeout); });
+            mapInstance.on('mouseup', function () { clearTimeout(longPressTimeout); });
+            mapInstance.on('movestart', function () { clearTimeout(longPressTimeout); });
         }
-        
-        function renderStops() {
-            if (sortable) sortable.destroy();
-            stopsContainer.innerHTML = '';
+
+        function renderStopsGeneric(stopsContainerEl, sortableInstance, isDesktop) {
+            if (sortableInstance) sortableInstance.destroy();
+            stopsContainerEl.innerHTML = '';
             waypoints.forEach((waypoint, index) => {
                 const isStart = index === 0;
                 const isEnd = index === waypoints.length - 1;
@@ -246,24 +345,31 @@
                         </div>
                     </div>
                 `;
-                stopsContainer.appendChild(stopDiv);
+                stopsContainerEl.appendChild(stopDiv);
             });
-            attachStopListeners();
-            initSortable();
+            attachStopListeners(isDesktop);
+            if(isDesktop) {
+                desktopSortable = new Sortable(stopsContainerDesktop, { animation: 150, handle: '.drag-handle', delay: 200, delayOnTouchOnly: true, onEnd: (evt) => { const movedItem = waypoints.splice(evt.oldIndex, 1)[0]; waypoints.splice(evt.newIndex, 0, movedItem); renderStopsDesktop(); } });
+            } else {
+                sortable = new Sortable(stopsContainer, { animation: 150, handle: '.drag-handle', delay: 200, delayOnTouchOnly: true, onEnd: (evt) => { const movedItem = waypoints.splice(evt.oldIndex, 1)[0]; waypoints.splice(evt.newIndex, 0, movedItem); renderStops(); } });
+            }
         }
 
-        function initSortable() { sortable = new Sortable(stopsContainer, { animation: 150, handle: '.drag-handle', delay: 200, delayOnTouchOnly: true, onEnd: (evt) => { const movedItem = waypoints.splice(evt.oldIndex, 1)[0]; waypoints.splice(evt.newIndex, 0, movedItem); renderStops(); } }); }
+        function renderStops() { renderStopsGeneric(stopsContainer, sortable, false); }
+        function renderStopsDesktop() { renderStopsGeneric(stopsContainerDesktop, desktopSortable, true); }
 
-        function attachStopListeners() {
-            document.querySelectorAll('.stop-input').forEach(input => {
+        function attachStopListeners(isDesktop) {
+            const selector = isDesktop ? '#stops-container-desktop' : '#stops-container';
+            document.querySelector(selector).querySelectorAll('.stop-input').forEach(input => {
                 input.addEventListener('input', debounce(handleAutocomplete, 150));
                 input.addEventListener('focus', handleAutocomplete);
             });
-            document.querySelectorAll('.remove-stop-btn').forEach(btn => { btn.addEventListener('click', (e) => { waypoints.splice(e.currentTarget.dataset.index, 1); renderStops(); }); });
-            document.querySelectorAll('.current-loc-btn').forEach(btn => { btn.addEventListener('click', getCurrentLocation); });
+            document.querySelector(selector).querySelectorAll('.remove-stop-btn').forEach(btn => { btn.addEventListener('click', (e) => { waypoints.splice(e.currentTarget.dataset.index, 1); renderStops(); if(isDesktop) renderStopsDesktop(); }); });
+            document.querySelector(selector).querySelectorAll('.current-loc-btn').forEach(btn => { btn.addEventListener('click', getCurrentLocation); });
         }
 
         function addStop() { waypoints.push({ label: '', coords: null }); renderStops(); }
+        function addStopDesktop() { waypoints.push({ label: '', coords: null }); renderStopsDesktop(); }
 
         async function handleAutocomplete(e) {
             const input = e.target;
@@ -320,16 +426,16 @@
             });
         }
 
-        async function getCurrentLocation() { if (!navigator.geolocation) { alert("Geolocation wird von deinem Browser nicht unterstützt."); return; } navigator.geolocation.getCurrentPosition(async (position) => { const { latitude, longitude } = position.coords; const response = await fetch(`https://api.openrouteservice.org/geocode/reverse?api_key=${ORS_API_KEY}&point.lon=${longitude}&point.lat=${latitude}`); const data = await response.json(); if (data.features && data.features.length > 0) { const place = data.features[0]; waypoints[0] = { label: place.properties.label, coords: place.geometry.coordinates }; renderStops(); } else { alert("Dein Standort konnte nicht in eine Adresse umgewandelt werden."); } }, () => alert("Standortzugriff verweigert.")); }
+        async function getCurrentLocation() { if (!navigator.geolocation) { alert("Geolocation wird von deinem Browser nicht unterstützt."); return; } navigator.geolocation.getCurrentPosition(async (position) => { const { latitude, longitude } = position.coords; const response = await fetch(`https://api.openrouteservice.org/geocode/reverse?api_key=${ORS_API_KEY}&point.lon=${longitude}&point.lat=${latitude}`); const data = await response.json(); if (data.features && data.features.length > 0) { const place = data.features[0]; waypoints[0] = { label: place.properties.label, coords: place.geometry.coordinates }; renderStops(); if(window.innerWidth >= 1024) renderStopsDesktop(); } else { alert("Dein Standort konnte nicht in eine Adresse umgewandelt werden."); } }, () => alert("Standortzugriff verweigert.")); }
 
-        async function calculateRoute() {
+        async function calculateRouteGeneric(btn, resultsContainer, mapInstance, routeLayerInstance, isDesktop) {
             const filledWaypoints = waypoints.filter(w => w.coords);
             if (filledWaypoints.length < 2) {
                 alert("Bitte mindestens Start und Ziel angeben.");
                 return;
             }
-            calculateRouteBtn.disabled = true;
-            calculateRouteBtn.textContent = "Berechne...";
+            btn.disabled = true;
+            btn.textContent = "Berechne...";
             try {
                 const coords = filledWaypoints.map(w => w.coords);
                 const response = await fetch(`https://api.openrouteservice.org/v2/directions/cycling-mountain/geojson`, {
@@ -342,12 +448,18 @@
                 const route = data.features[0];
                 
                 const routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
-                if (routeLayer) map.removeLayer(routeLayer);
-                routeLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(map);
-                map.fitBounds(routeLayer.getBounds());
+                if (routeLayerInstance) mapInstance.removeLayer(routeLayerInstance);
                 
-                let sportBattery = parseInt(batterySlider.value);
-                let ecoBattery = parseInt(batterySlider.value);
+                if(isDesktop) {
+                    desktopRouteLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance);
+                    mapInstance.fitBounds(desktopRouteLayer.getBounds());
+                } else {
+                    routeLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance);
+                    mapInstance.fitBounds(routeLayer.getBounds());
+                }
+                
+                let sportBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
+                let ecoBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
                 let resultsHtml = '';
 
                 route.properties.segments.forEach((segment, i) => {
@@ -379,16 +491,18 @@
                             </div>
                         </div>`;
                 });
-                routeResults.innerHTML = `<div class="space-y-3">${resultsHtml}</div>`;
+                resultsContainer.innerHTML = `<div class="space-y-3">${resultsHtml}</div>`;
             } catch (error) {
                 console.error(error);
                 alert(error.message);
-                routeResults.innerHTML = `<p class="text-red-500 text-center">Routenberechnung fehlgeschlagen.</p>`;
+                resultsContainer.innerHTML = `<p class="text-red-500 text-center">Routenberechnung fehlgeschlagen.</p>`;
             } finally {
-                calculateRouteBtn.disabled = false;
-                calculateRouteBtn.textContent = "Route berechnen";
+                btn.disabled = false;
+                btn.textContent = "Route berechnen";
             }
         }
+        async function calculateRoute() { await calculateRouteGeneric(calculateRouteBtn, routeResults, map, routeLayer, false); }
+        async function calculateRouteDesktop() { await calculateRouteGeneric(calculateRouteBtnDesktop, routeResultsDesktop, desktopMap, desktopRouteLayer, true); }
 
         // ===== Event Listeners =====
         batterySlider.addEventListener('input', updateAndSave);
@@ -396,14 +510,65 @@
         modeRadios.forEach(radio => radio.addEventListener('change', updateAndSave));
         plusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) < 100) { batterySlider.value = parseInt(batterySlider.value) + 1; batterySlider.dispatchEvent(new Event('input')); } });
         minusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) > 0) { batterySlider.value = parseInt(batterySlider.value) - 1; batterySlider.dispatchEvent(new Event('input')); } });
-        menuButton.addEventListener('click', () => { const isRoutePageOpen = !routePage.classList.contains('hidden'); if (isRoutePageOpen) { routePage.classList.add('hidden'); calculatorPage.classList.remove('hidden'); menuIconOpen.classList.remove('hidden'); menuIconClose.classList.add('hidden'); } else { calculatorPage.classList.add('hidden'); routePage.classList.remove('hidden'); menuIconOpen.classList.add('hidden'); menuIconClose.classList.remove('hidden'); initMap(); renderStops(); } });
+        
+        batterySliderDesktop.addEventListener('input', updateAndSaveDesktop);
+        capacityToggleDesktop.addEventListener('change', updateAndSaveDesktop);
+        modeRadiosDesktop.forEach(radio => radio.addEventListener('change', updateAndSaveDesktop));
+        plusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) < 100) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) + 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
+        minusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) > 0) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) - 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
+
+        menuButton.addEventListener('click', () => { 
+            const isRoutePageOpen = !routePage.classList.contains('hidden'); 
+            if (isRoutePageOpen) { 
+                routePage.classList.add('hidden'); 
+                calculatorPage.classList.remove('hidden'); 
+                menuIconOpen.classList.remove('hidden'); 
+                menuIconClose.classList.add('hidden'); 
+            } else { 
+                calculatorPage.classList.add('hidden'); 
+                routePage.classList.remove('hidden'); 
+                menuIconOpen.classList.add('hidden'); 
+                menuIconClose.classList.remove('hidden'); 
+                if(!map) {
+                    map = initMap('map');
+                    setupMapInteractions(map);
+                }
+                renderStops(); 
+            } 
+        });
         addStopBtn.addEventListener('click', addStop);
+        addStopBtnDesktop.addEventListener('click', addStopDesktop);
         calculateRouteBtn.addEventListener('click', calculateRoute);
+        calculateRouteBtnDesktop.addEventListener('click', calculateRouteDesktop);
         confirmSaveBtn.addEventListener('click', confirmSavePlace);
         cancelSaveBtn.addEventListener('click', closeSavePlaceModal);
 
+        toggleMapSizeBtn.addEventListener('click', () => {
+            const mapDiv = document.getElementById('map');
+            
+            const onTransitionEnd = () => {
+                if (map) {
+                    map.invalidateSize();
+                }
+                mapDiv.removeEventListener('transitionend', onTransitionEnd);
+            };
+            mapDiv.addEventListener('transitionend', onTransitionEnd);
+
+            mapDiv.classList.toggle('large');
+        });
+
         // ===== Initial Load =====
-        document.addEventListener('DOMContentLoaded', () => { loadState(); calculateRange(); saveState(); });
+        document.addEventListener('DOMContentLoaded', () => { 
+            loadState(); 
+            calculateRange(); 
+            saveState(); 
+            if (window.innerWidth >= 1024) {
+                desktopMap = initMap('map-desktop');
+                setupMapInteractions(desktopMap);
+                renderStopsDesktop();
+                calculateRangeDesktop();
+            }
+        });
     </script>
 
 </body>
