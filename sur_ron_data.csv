@@ -1,0 +1,5 @@
+# Note: The measurements starting with 100% are likely inaccurate as the first percent lasts longer.
+Mode,Distance_km,Up_m,Down_m,start_soc,End_soc
+Sport,1.99,25,-42,100,99
+Sport,1.53,77,-2,99,94
+Sport,4.41,2,-93,94,86
