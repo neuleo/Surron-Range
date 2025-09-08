@@ -71,7 +71,10 @@
                     <div class="space-y-4">
                         <div class="flex justify-between items-center pl-12">
                             <h1 class="text-2xl font-bold text-white">Routenplaner</h1>
-                            <button id="manage-favorites-btn" class="text-sm text-orange-400 hover:text-orange-500">Favoriten</button>
+                            <div>
+                                <button id="import-gpx-btn" class="text-sm text-orange-400 hover:text-orange-500 mr-4">Import</button>
+                                <button id="manage-favorites-btn" class="text-sm text-orange-400 hover:text-orange-500">Favoriten</button>
+                            </div>
                         </div>
                         <div id="stops-container" class="space-y-4"></div>
                         <button id="add-stop-btn" class="w-full border-2 border-dashed border-gray-600 hover:border-orange-600 text-gray-400 font-bold py-2 px-4 rounded-lg focus:outline-none">+ Stop hinzufügen</button>
@@ -107,7 +110,10 @@
             <div class="w-1/2 space-y-4 flex flex-col">
                 <div class="flex justify-between items-center">
                     <h1 class="text-2xl font-bold text-white">Routenplaner</h1>
-                    <button id="manage-favorites-btn-desktop" class="text-sm text-orange-400 hover:text-orange-500">Favoriten verwalten</button>
+                    <div>
+                        <button id="import-gpx-btn-desktop" class="text-sm text-orange-400 hover:text-orange-500 mr-4">Import</button>
+                        <button id="manage-favorites-btn-desktop" class="text-sm text-orange-400 hover:text-orange-500">Favoriten verwalten</button>
+                    </div>
                 </div>
                 <p class="text-gray-400">Plane eine Tour mit mehreren Stops.</p>
                 <div id="stops-container-desktop" class="space-y-4"></div>
@@ -133,6 +139,8 @@
             </div>
         </div>
     </div>
+
+    <input type="file" id="gpx-file-input" class="hidden" accept=".gpx,application/gpx+xml,text/xml"/>
 
     <!-- Save Place Modal -->
     <div id="save-place-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -222,6 +230,12 @@
         const favoritesModalDesktop = document.getElementById('favorites-modal-desktop');
         const favoritesListContainerDesktop = document.getElementById('favorites-list-container-desktop');
         const backToRouteBtnDesktop = document.getElementById('back-to-route-btn-desktop');
+
+
+        // GPX Import Elements
+        const importGpxBtn = document.getElementById('import-gpx-btn');
+        const importGpxBtnDesktop = document.getElementById('import-gpx-btn-desktop');
+        const gpxFileInput = document.getElementById('gpx-file-input');
 
 
         // ===== State & Map Variables =====
@@ -494,6 +508,160 @@
             URL.revokeObjectURL(url);
         }
 
+        // ===== GPX Import Logic =====
+        function handleGpxFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    parseGpxAndSetWaypoints(event.target.result);
+                } catch (error) {
+                    console.error("Error parsing GPX file:", error);
+                    alert("Fehler beim Parsen der GPX-Datei.");
+                }
+            };
+            reader.onerror = () => {
+                alert("Fehler beim Lesen der Datei.");
+            };
+            reader.readAsText(file);
+            e.target.value = null; // Reset input to allow re-uploading the same file
+        }
+
+        async function parseGpxAndSetWaypoints(gpxText) {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(gpxText, "application/xml");
+
+            if (doc.getElementsByTagName("parsererror").length) {
+                alert("Fehler: Die GPX-Datei ist fehlerhaft oder konnte nicht gelesen werden.");
+                return;
+            }
+
+            let points = [];
+            const gpxNamespace = 'http://www.topografix.com/GPX/1/1';
+            const MAX_WAYPOINTS = 15;
+
+            const getGpxElements = (element, tagName) => {
+                if (!element) return [];
+                let results = [...element.getElementsByTagNameNS(gpxNamespace, tagName)];
+                if (results.length === 0) { // Fallback for files without namespace
+                    results = [...element.getElementsByTagName(tagName)];
+                }
+                return results;
+            };
+
+            const getName = (element) => {
+                const nameEl = getGpxElements(element, 'name')[0];
+                return nameEl?.textContent || null;
+            };
+
+            // 1. Look for Route Points (<rtept>)
+            let routepointsXml = getGpxElements(doc, 'rtept');
+            if (routepointsXml.length > 0) {
+                points = routepointsXml.map(pt => ({
+                    lat: parseFloat(pt.getAttribute('lat')),
+                    lon: parseFloat(pt.getAttribute('lon')),
+                    name: getName(pt)
+                }));
+            }
+
+            // 2. If no route points, look for Waypoints (<wpt>)
+            if (points.length === 0) {
+                let waypointsXml = getGpxElements(doc, 'wpt');
+                if (waypointsXml.length > 0) {
+                    points = waypointsXml.map(pt => ({
+                        lat: parseFloat(pt.getAttribute('lat')),
+                        lon: parseFloat(pt.getAttribute('lon')),
+                        name: getName(pt)
+                    }));
+                }
+            }
+
+            // 3. If still no points, look for Track Points (<trkpt>)
+            if (points.length === 0) {
+                const allTrkpts = getGpxElements(doc, 'trkpt');
+                if (allTrkpts.length > 0) {
+                    const trackName = getName(getGpxElements(doc, 'trk')[0]) || getName(getGpxElements(doc, 'metadata')[0]) || 'Track';
+                    
+                    if (allTrkpts.length <= MAX_WAYPOINTS) {
+                        points = allTrkpts.map((pt, i) => ({
+                            lat: parseFloat(pt.getAttribute('lat')),
+                            lon: parseFloat(pt.getAttribute('lon')),
+                            name: `${trackName} - Punkt ${i + 1}`
+                        }));
+                    } else {
+                        points = []; // Reset points array for sampling
+                        // Sample points including start and end
+                        const step = (allTrkpts.length - 1) / (MAX_WAYPOINTS - 1);
+                        for (let i = 0; i < MAX_WAYPOINTS; i++) {
+                            const pt = allTrkpts[Math.round(i * step)];
+                            points.push({
+                                lat: parseFloat(pt.getAttribute('lat')),
+                                lon: parseFloat(pt.getAttribute('lon')),
+                                name: i === 0 ? `${trackName} - Start` : (i === MAX_WAYPOINTS - 1 ? `${trackName} - Ende` : `${trackName} - Punkt ${i+1}`)
+                            });
+                        }
+                    }
+                }
+            }
+
+            if (points.length === 0) {
+                alert("Keine gültigen Wegpunkte (<rtept>, <wpt> oder <trkpt>) in der GPX-Datei gefunden.");
+                return;
+            }
+
+            if (points.length > MAX_WAYPOINTS) {
+                points = points.slice(0, MAX_WAYPOINTS);
+            }
+
+            const calcBtn = document.getElementById('calculate-route-btn');
+            const originalBtnText = calcBtn.textContent;
+            calcBtn.disabled = true;
+            calcBtn.textContent = `${points.length} Wegpunkte werden importiert...`;
+
+            try {
+                const waypointPromises = points.map(async (point) => {
+                    const coords = [point.lon, point.lat];
+                    if (point.name) {
+                        return { label: point.name, coords: coords, name: point.name };
+                    }
+                    const response = await fetch(`https://api.openrouteservice.org/geocode/reverse?api_key=${ORS_API_KEY}&point.lon=${coords[0]}&point.lat=${coords[1]}&size=1`);
+                    const data = await response.json();
+                    if (data.features && data.features.length > 0) {
+                        return { label: data.features[0].properties.label, coords: coords, name: null };
+                    }
+                    return { label: `${coords[1].toFixed(5)}, ${coords[0].toFixed(5)}`, coords: coords, name: null };
+                });
+
+                const newWaypoints = await Promise.all(waypointPromises);
+                
+                waypoints = newWaypoints;
+                if (waypoints.length === 1) {
+                    waypoints.push({ label: '', coords: null });
+                }
+                if (waypoints.length === 0) {
+                    waypoints = [ { label: '', coords: null }, { label: '', coords: null } ];
+                }
+
+                renderStops();
+                renderStopsDesktop();
+                
+                if (window.innerWidth < 1024) {
+                    showPage('route');
+                    if(!map) { map = initMap('map'); setupMapInteractions(map); }
+                }
+                alert(`${newWaypoints.length} Wegpunkte erfolgreich importiert.`);
+
+            } catch (error) {
+                console.error("Error processing GPX waypoints:", error);
+                alert("Ein Fehler ist beim Verarbeiten der Wegpunkte aufgetreten.");
+            } finally {
+                calcBtn.disabled = false;
+                calcBtn.textContent = originalBtnText;
+            }
+        }
+
         // ===== Favorites Logic =====
         function renderFavoritesGeneric(container, sortableVar) {
             if (sortableVar) sortableVar.destroy();
@@ -571,6 +739,11 @@
         calculateRouteBtnDesktop.addEventListener('click', calculateRouteDesktop);
         manageFavoritesBtnDesktop.addEventListener('click', () => { renderFavoritesDesktop(); favoritesModalDesktop.classList.remove('hidden'); });
         backToRouteBtnDesktop.addEventListener('click', () => favoritesModalDesktop.classList.add('hidden'));
+
+        // GPX Import Listeners
+        importGpxBtn.addEventListener('click', () => gpxFileInput.click());
+        importGpxBtnDesktop.addEventListener('click', () => gpxFileInput.click());
+        gpxFileInput.addEventListener('change', handleGpxFile);
 
         // Shared Listeners
         confirmSaveBtn.addEventListener('click', confirmSavePlace);
