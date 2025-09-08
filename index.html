@@ -349,6 +349,7 @@
                 const coords = isSaved ? feature.coords : feature.geometry.coordinates;
                 item.dataset.label = label;
                 item.dataset.coords = JSON.stringify(coords);
+                if (isSaved) { item.dataset.name = name; } // Store name for later use
                 const labelDiv = document.createElement('div');
                 labelDiv.className = 'suggestion-item-label';
                 if (isSaved) { labelDiv.innerHTML = `<div class="name">⭐ ${name}</div><div class="address">${label}</div>`; } else { labelDiv.textContent = label; }
@@ -358,7 +359,14 @@
                 const handleSelect = (e) => {
                     e.preventDefault(); e.stopPropagation();
                     if (e.target.closest('.save-place-btn')) { openSavePlaceModal(item.dataset.label, JSON.parse(item.dataset.coords)); } 
-                    else { input.value = item.dataset.label; waypoints[input.dataset.index] = { label: item.dataset.label, coords: JSON.parse(item.dataset.coords) }; }
+                    else { 
+                        input.value = item.dataset.label; 
+                        waypoints[input.dataset.index] = { 
+                            label: item.dataset.label, 
+                            coords: JSON.parse(item.dataset.coords),
+                            name: item.dataset.name || null
+                        }; 
+                    }
                     container.innerHTML = '';
                 };
                 item.addEventListener('mousedown', handleSelect);
@@ -431,7 +439,7 @@
                 const gpxButton = document.createElement('button');
                 gpxButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>GPX Herunterladen`;
                 gpxButton.className = 'w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500 flex items-center justify-center';
-                gpxButton.onclick = () => downloadGpx(route);
+                gpxButton.onclick = () => downloadGpx(route, filledWaypoints);
 
                 buttonContainer.appendChild(navButton);
                 buttonContainer.appendChild(gpxButton);
@@ -462,13 +470,24 @@
 </gpx>`;
         }
 
-        function downloadGpx(route) {
+        function downloadGpx(route, waypoints) {
             const gpxData = createGpxString(route);
+            
+            const startWaypoint = waypoints[0];
+            const endWaypoint = waypoints[waypoints.length - 1];
+
+            const startName = startWaypoint?.name || startWaypoint?.label || 'Start';
+            const endName = endWaypoint?.name || endWaypoint?.label || 'End';
+
+            const sanitize = (name) => name.replace(/[\s,]/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 30);
+            
+            const filename = `Route_${sanitize(startName)}_nach_${sanitize(endName)}.gpx`;
+
             const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'sur-ron-route.gpx';
+            a.download = filename;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
