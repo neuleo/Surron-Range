@@ -239,13 +239,27 @@
 
 
         // ===== State & Map Variables =====
-        let map, routeLayer, sortable, desktopMap, desktopRouteLayer, desktopSortable, favoritesSortable, desktopFavoritesSortable;
+        let map, routeLayer, sortable, desktopMap, desktopRouteLayer, desktopSortable, favoritesSortable, desktopFavoritesSortable, waypointMarkers = [], desktopWaypointMarkers = [];
         let waypoints = [ { label: '', coords: null }, { label: '', coords: null } ];
         let placeToSave = {};
         let activePage = 'calculator'; // calculator, route, favorites
 
         // ===== Utility Functions =====
         const debounce = (func, delay) => { let timeout; return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
+
+        const escapeXml = (unsafe) => {
+            if (typeof unsafe !== 'string') return '';
+            return unsafe.replace(/[<>&'\\"]/g, (c) => {
+                switch (c) {
+                    case '<': return '&lt;';
+                    case '>': return '&gt;';
+                    case '&': return '&amp;';
+                    case "'": return '&apos;';
+                    case '"': return '&quot;';
+                }
+                return c;
+            });
+        };
 
         // ===== State Management (localStorage) =====
         function saveState() { const state = { battery: batterySlider.value, mode: document.querySelector('input[name="mode"]:checked')?.value || 'sport', throttled: capacityToggle.checked }; localStorage.setItem('surRonRangeState', JSON.stringify(state)); }
@@ -311,10 +325,37 @@
             waypoints.forEach((waypoint, index) => {
                 const isStart = index === 0;
                 const isEnd = index === waypoints.length - 1;
-                let labelText = isStart ? 'Start' : (isEnd ? 'Ziel' : `Stop ${index}`);
+                let labelText;
+                let numberHtml;
+
+                if (isStart) {
+                    labelText = 'Start';
+                    numberHtml = 'S';
+                } else if (isEnd) {
+                    labelText = 'Ziel';
+                    numberHtml = 'Z';
+                } else {
+                    labelText = `Stopp ${index}`;
+                    numberHtml = index;
+                }
+
                 const stopDiv = document.createElement('div');
                 stopDiv.className = 'stop-item bg-gray-700/50 p-2 rounded-md flex items-center space-x-3';
-                stopDiv.innerHTML = `<svg class="drag-handle h-6 w-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><circle cx="7" cy="5" r="1.5" /><circle cx="13" cy="5" r="1.5" /><circle cx="7" cy="10" r="1.5" /><circle cx="13" cy="10" r="1.5" /><circle cx="7" cy="15" r="1.5" /><circle cx="13" cy="15" r="1.5" /></svg><div class="flex-grow"><label class="text-sm font-medium text-gray-400">${labelText}</label><div class="flex items-center space-x-2 mt-1"><div class="relative flex-grow"><input type="text" data-index="${index}" class="stop-input block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-2 focus:ring-orange-500 focus:border-orange-500" autocomplete="off" value="${waypoint.label}"><div class="autocomplete-suggestions absolute w-full mt-1 z-20"></div></div>${!isStart ? `<button data-index="${index}" class="remove-stop-btn p-2 bg-gray-700 rounded-md hover:bg-red-600" title="Stop entfernen">&times;</button>` : `<button class="current-loc-btn p-2 bg-gray-700 rounded-md hover:bg-orange-600" title="Aktuellen Standort verwenden"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></button>`}</div></div>`;
+                stopDiv.innerHTML = `
+                    <svg class="drag-handle h-6 w-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><circle cx="7" cy="5" r="1.5" /><circle cx="13" cy="5" r="1.5" /><circle cx="7" cy="10" r="1.5" /><circle cx="13" cy="10" r="1.5" /><circle cx="7" cy="15" r="1.5" /><circle cx="13" cy="15" r="1.5" /></svg>
+                    <div class="flex-grow">
+                        <div class="flex items-center mb-1">
+                            <span class="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold mr-2 flex-shrink-0">${numberHtml}</span>
+                            <label class="text-sm font-medium text-gray-400">${labelText}</label>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <div class="relative flex-grow">
+                                <input type="text" data-index="${index}" class="stop-input block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-2 focus:ring-orange-500 focus:border-orange-500" autocomplete="off" value="${waypoint.label}">
+                                <div class="autocomplete-suggestions absolute w-full mt-1 z-20"></div>
+                            </div>
+                            ${!isStart && !isEnd ? `<button data-index="${index}" class="remove-stop-btn p-2 bg-gray-700 rounded-md hover:bg-red-600" title="Stop entfernen">&times;</button>` : (isStart ? `<button class="current-loc-btn p-2 bg-gray-700 rounded-md hover:bg-orange-600" title="Aktuellen Standort verwenden"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></button>` : '<div class="w-10"></div>')}
+                        </div>
+                    </div>`;
                 stopsContainerEl.appendChild(stopDiv);
             });
             attachStopListeners(isDesktop);
@@ -327,13 +368,25 @@
 
         function attachStopListeners(isDesktop) {
             const selector = isDesktop ? '#stops-container-desktop' : '#stops-container';
-            document.querySelector(selector).querySelectorAll('.stop-input').forEach(input => { input.addEventListener('input', debounce(handleAutocomplete, 150)); input.addEventListener('focus', handleAutocomplete); });
+            document.querySelector(selector).querySelectorAll('.stop-input').forEach(input => {
+                input.addEventListener('input', debounce(handleAutocomplete, 150));
+                input.addEventListener('focus', handleAutocomplete);
+                input.addEventListener('blur', () => {
+                    // Delay hiding to allow click on suggestion
+                    setTimeout(() => {
+                        const suggestionsContainer = input.nextElementSibling;
+                        if (suggestionsContainer) {
+                            suggestionsContainer.innerHTML = '';
+                        }
+                    }, 200);
+                });
+            });
             document.querySelector(selector).querySelectorAll('.remove-stop-btn').forEach(btn => { btn.addEventListener('click', (e) => { waypoints.splice(e.currentTarget.dataset.index, 1); renderStops(); if(isDesktop) renderStopsDesktop(); }); });
             document.querySelector(selector).querySelectorAll('.current-loc-btn').forEach(btn => { btn.addEventListener('click', getCurrentLocation); });
         }
 
-        function addStop() { waypoints.push({ label: '', coords: null }); renderStops(); }
-        function addStopDesktop() { waypoints.push({ label: '', coords: null }); renderStopsDesktop(); }
+        function addStop() { waypoints.splice(waypoints.length - 1, 0, { label: '', coords: null }); renderStops(); }
+        function addStopDesktop() { waypoints.splice(waypoints.length - 1, 0, { label: '', coords: null }); renderStopsDesktop(); }
 
         async function handleAutocomplete(e) {
             const input = e.target;
@@ -392,7 +445,7 @@
 
         async function getCurrentLocation() { if (!navigator.geolocation) { alert("Geolocation wird von deinem Browser nicht unterstützt."); return; } navigator.geolocation.getCurrentPosition(async (position) => { const { latitude, longitude } = position.coords; const response = await fetch(`https://api.openrouteservice.org/geocode/reverse?api_key=${ORS_API_KEY}&point.lon=${longitude}&point.lat=${latitude}`); const data = await response.json(); if (data.features && data.features.length > 0) { const place = data.features[0]; waypoints[0] = { label: place.properties.label, coords: place.geometry.coordinates }; renderStops(); if(window.innerWidth >= 1024) renderStopsDesktop(); } else { alert("Dein Standort konnte nicht in eine Adresse umgewandelt werden."); } }, () => alert("Standortzugriff verweigert.")); }
 
-        async function calculateRouteGeneric(btn, resultsContainer, mapInstance, routeLayerInstance, isDesktop) {
+                        async function calculateRouteGeneric(btn, resultsContainer, mapInstance, routeLayerInstance, isDesktop) {
             const filledWaypoints = waypoints.filter(w => w.coords);
             if (filledWaypoints.length < 2) { alert("Bitte mindestens Start und Ziel angeben."); return; }
             btn.disabled = true; btn.textContent = "Berechne...";
@@ -404,8 +457,64 @@
                 const route = data.features[0];
                 const routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
                 if (routeLayerInstance) mapInstance.removeLayer(routeLayerInstance);
-                if(isDesktop) { desktopRouteLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance); mapInstance.fitBounds(desktopRouteLayer.getBounds()); } 
-                else { routeLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance); mapInstance.fitBounds(routeLayer.getBounds()); }
+                if (isDesktop) {
+                    desktopWaypointMarkers.forEach(m => mapInstance.removeLayer(m));
+                    desktopWaypointMarkers = [];
+                } else {
+                    waypointMarkers.forEach(m => mapInstance.removeLayer(m));
+                    waypointMarkers = [];
+                }
+
+                let newRouteLayer;
+                if(isDesktop) {
+                    desktopRouteLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance);
+                    newRouteLayer = desktopRouteLayer;
+                } else {
+                    routeLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance);
+                    newRouteLayer = routeLayer;
+                }
+
+                const newMarkers = [];
+                filledWaypoints.forEach((waypoint, index) => {
+                    const isStart = index === 0;
+                    const isEnd = index === filledWaypoints.length - 1;
+                    let markerHtml;
+                    if (isStart) {
+                        markerHtml = 'S';
+                    } else if (isEnd) {
+                        markerHtml = 'Z';
+                    } else {
+                        markerHtml = index;
+                    }
+
+                    const numberIcon = L.divIcon({
+                        className: 'custom-div-icon',
+                        html: `<div style="background-color: #f97316; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);">${markerHtml}</div>`,
+                        iconSize: [24, 24],
+                        iconAnchor: [12, 12]
+                    });
+
+                    const marker = L.marker([waypoint.coords[1], waypoint.coords[0]], { icon: numberIcon }).addTo(mapInstance);
+                    
+                    let labelText = '';
+                    if (isStart) {
+                        labelText = `<b>Start:</b><br>${waypoint.label}`;
+                    } else if (isEnd) {
+                        labelText = `<b>Ziel:</b><br>${waypoint.label}`;
+                    } else {
+                        labelText = `<b>Stopp ${index}:</b><br>${waypoint.label}`;
+                    }
+                    marker.bindPopup(labelText);
+                    newMarkers.push(marker);
+                });
+
+                if (isDesktop) {
+                    desktopWaypointMarkers = newMarkers;
+                } else {
+                    waypointMarkers = newMarkers;
+                }
+                
+                mapInstance.fitBounds(newRouteLayer.getBounds(), { padding: [50, 50] });
                 
                 let sportBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
                 let ecoBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
@@ -419,7 +528,27 @@
                     sportBattery -= sportNeeded;
                     ecoBattery -= ecoNeeded;
                     const destinationStop = filledWaypoints[i + 1];
-                    resultsHtml += `<div class="p-3 bg-gray-700 rounded-lg"><p class="font-bold">Ankunft bei: ${destinationStop.label.substring(0, 30)}...</p><p class="text-sm text-gray-400">Etappe: ${distanceKm.toFixed(1)} km, ${ascent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${descent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p><div class="grid grid-cols-2 gap-2 pt-1 text-center"><div><p class="text-xs text-gray-400">Ankunft (Sport)</p><p class="font-bold ${sportBattery < 10 ? 'text-red-500' : ''}">${sportBattery.toFixed(0)}%</p></div><div><p class="text-xs text-gray-400">Ankunft (Eco)</p><p class="font-bold ${ecoBattery < 10 ? 'text-red-500' : ''}">${ecoBattery.toFixed(0)}%</p></div></div></div>`;
+
+                    const destinationIndex = i + 1;
+                    const isEnd = destinationIndex === filledWaypoints.length - 1;
+                    let markerHtml;
+                    if (isEnd) {
+                        markerHtml = 'Z';
+                    } else {
+                        markerHtml = destinationIndex;
+                    }
+
+                    resultsHtml += `<div class="p-3 bg-gray-700 rounded-lg flex items-start space-x-3">
+                        <div class="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">${markerHtml}</div>
+                        <div>
+                            <p class="font-bold">Ankunft bei: ${destinationStop.label.substring(0, 40)}...</p>
+                            <p class="text-sm text-gray-400">Etappe: ${distanceKm.toFixed(1)} km, ${ascent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${descent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p>
+                            <div class="grid grid-cols-2 gap-2 pt-1 text-center">
+                                <div><p class="text-xs text-gray-400">Ankunft (Sport)</p><p class="font-bold ${sportBattery < 10 ? 'text-red-500' : ''}">${sportBattery.toFixed(0)}%</p></div>
+                                <div><p class="text-xs text-gray-400">Ankunft (Eco)</p><p class="font-bold ${ecoBattery < 10 ? 'text-red-500' : ''}">${ecoBattery.toFixed(0)}%</p></div>
+                            </div>
+                        </div>
+                    </div>`;
                 });
                 resultsContainer.innerHTML = `<div class="space-y-3">${resultsHtml}</div>`;
 
@@ -466,26 +595,34 @@
         async function calculateRouteDesktop() { await calculateRouteGeneric(calculateRouteBtnDesktop, routeResultsDesktop, desktopMap, desktopRouteLayer, true); }
 
         // ===== GPX Export =====
-        function createGpxString(route) {
+        function createGpxString(route, waypoints) {
             const coords = route.geometry.coordinates;
             const trkpts = coords.map(c => {
-                return `<trkpt lat="${c[1]}" lon="${c[0]}"><ele>${c[2]}</ele></trkpt>`;
+                return `      <trkpt lat="${c[1]}" lon="${c[0]}"><ele>${c[2]}</ele></trkpt>`;
+            }).join('\n');
+
+            const wpts = waypoints.map(w => {
+                if (!w.coords) return '';
+                const name = w.name || (w.label || '').split(',')[0];
+                return `  <wpt lat="${w.coords[1]}" lon="${w.coords[0]}"><name>${escapeXml(name)}</name></wpt>`;
             }).join('\n');
 
             return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1" creator="Sur-Ron Range Calculator" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
-  <metadata><name>Sur-Ron Calculated Route</name></metadata>
-  <trk>
+  <metadata>
+    <name>Sur-Ron Calculated Route</name>
+  </metadata>
+${wpts ? `  ${wpts}\n` : ''}  <trk>
     <name>Sur-Ron Calculated Route</name>
     <trkseg>
-      ${trkpts}
+${trkpts}
     </trkseg>
   </trk>
 </gpx>`;
         }
 
         function downloadGpx(route, waypoints) {
-            const gpxData = createGpxString(route);
+            const gpxData = createGpxString(route, waypoints);
             
             const startWaypoint = waypoints[0];
             const endWaypoint = waypoints[waypoints.length - 1];
@@ -493,7 +630,7 @@
             const startName = startWaypoint?.name || startWaypoint?.label || 'Start';
             const endName = endWaypoint?.name || endWaypoint?.label || 'End';
 
-            const sanitize = (name) => name.replace(/[\s,]/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 30);
+            const sanitize = (name) => name.replace(/["\s,"]/g, '_').replace(/[^a-zA-Z0-9_-]/g, '').substring(0, 30);
             
             const filename = `Route_${sanitize(startName)}_nach_${sanitize(endName)}.gpx`;
 
@@ -582,25 +719,36 @@
             if (points.length === 0) {
                 const allTrkpts = getGpxElements(doc, 'trkpt');
                 if (allTrkpts.length > 0) {
-                    const trackName = getName(getGpxElements(doc, 'trk')[0]) || getName(getGpxElements(doc, 'metadata')[0]) || 'Track';
-                    
-                    if (allTrkpts.length <= MAX_WAYPOINTS) {
-                        points = allTrkpts.map((pt, i) => ({
+                    // First, look for named trackpoints, which likely correspond to user-defined waypoints from apps like Komoot
+                    const namedTrkpts = allTrkpts.filter(pt => getGpxElements(pt, 'name').length > 0);
+
+                    if (namedTrkpts.length > 0) {
+                        points = namedTrkpts.map(pt => ({
                             lat: parseFloat(pt.getAttribute('lat')),
                             lon: parseFloat(pt.getAttribute('lon')),
-                            name: `${trackName} - Punkt ${i + 1}`
+                            name: getName(pt)
                         }));
                     } else {
-                        points = []; // Reset points array for sampling
-                        // Sample points including start and end
-                        const step = (allTrkpts.length - 1) / (MAX_WAYPOINTS - 1);
-                        for (let i = 0; i < MAX_WAYPOINTS; i++) {
-                            const pt = allTrkpts[Math.round(i * step)];
-                            points.push({
+                        // If no named trackpoints, fall back to sampling the track
+                        const trackName = getName(getGpxElements(doc, 'trk')[0]) || getName(getGpxElements(doc, 'metadata')[0]) || 'Track';
+                        
+                        if (allTrkpts.length <= MAX_WAYPOINTS) {
+                            points = allTrkpts.map((pt, i) => ({
                                 lat: parseFloat(pt.getAttribute('lat')),
                                 lon: parseFloat(pt.getAttribute('lon')),
-                                name: i === 0 ? `${trackName} - Start` : (i === MAX_WAYPOINTS - 1 ? `${trackName} - Ende` : `${trackName} - Punkt ${i+1}`)
-                            });
+                                name: `${trackName} - Punkt ${i + 1}`
+                            }));
+                        } else {
+                            points = []; // Reset points array for sampling
+                            const step = (allTrkpts.length - 1) / (MAX_WAYPOINTS - 1);
+                            for (let i = 0; i < MAX_WAYPOINTS; i++) {
+                                const pt = allTrkpts[Math.round(i * step)];
+                                points.push({
+                                    lat: parseFloat(pt.getAttribute('lat')),
+                                    lon: parseFloat(pt.getAttribute('lon')),
+                                    name: i === 0 ? `${trackName} - Start` : (i === MAX_WAYPOINTS - 1 ? `${trackName} - Ende` : `${trackName} - Punkt ${i+1}`)
+                                });
+                            }
                         }
                     }
                 }
@@ -612,6 +760,7 @@
             }
 
             if (points.length > MAX_WAYPOINTS) {
+                alert(`Die GPX-Datei enthält ${points.length} Wegpunkte. Es werden nur die ersten ${MAX_WAYPOINTS} importiert, um die Routenberechnung nicht zu überlasten.`);
                 points = points.slice(0, MAX_WAYPOINTS);
             }
 
@@ -646,6 +795,74 @@
 
                 renderStops();
                 renderStopsDesktop();
+
+                // Show imported waypoints on the map
+                const isDesktop = window.innerWidth >= 1024;
+                const mapInstance = isDesktop ? desktopMap : map;
+                
+                if (mapInstance) {
+                    // Clear previous route line and markers
+                    if (isDesktop) {
+                        if (desktopRouteLayer) mapInstance.removeLayer(desktopRouteLayer);
+                        desktopWaypointMarkers.forEach(m => mapInstance.removeLayer(m));
+                        desktopWaypointMarkers = [];
+                    } else {
+                        if (routeLayer) mapInstance.removeLayer(routeLayer);
+                        waypointMarkers.forEach(m => mapInstance.removeLayer(m));
+                        waypointMarkers = [];
+                    }
+
+                    const markers = [];
+                    const latLngs = [];
+                    newWaypoints.forEach((waypoint, index) => {
+                        if (waypoint.coords) {
+                            const isStart = index === 0;
+                            const isEnd = index === newWaypoints.length - 1;
+                            let markerHtml;
+                            if (isStart) {
+                                markerHtml = 'S';
+                            } else if (isEnd) {
+                                markerHtml = 'Z';
+                            } else {
+                                markerHtml = index;
+                            }
+
+                            const numberIcon = L.divIcon({
+                                className: 'custom-div-icon',
+                                html: `<div style="background-color: #f97316; color: white; border-radius: 50%; width: 24px; height: 24px; display: flex; align-items: center; justify-content: center; font-weight: bold; border: 2px solid white; box-shadow: 0 0 5px rgba(0,0,0,0.5);">${markerHtml}</div>`,
+                                iconSize: [24, 24],
+                                iconAnchor: [12, 12]
+                            });
+
+                            const latLng = [waypoint.coords[1], waypoint.coords[0]];
+                            latLngs.push(latLng);
+                            const marker = L.marker(latLng, { icon: numberIcon }).addTo(mapInstance);
+                            
+                            let labelText = '';
+                            if (isStart) {
+                                labelText = `<b>Start:</b><br>${waypoint.label}`;
+                            } else if (isEnd) {
+                                labelText = `<b>Ziel:</b><br>${waypoint.label}`;
+                            } else {
+                                labelText = `<b>Stopp ${index}:</b><br>${waypoint.label}`;
+                            }
+                            marker.bindPopup(labelText);
+                            markers.push(marker);
+                        }
+                    });
+
+                    if (isDesktop) {
+                        desktopWaypointMarkers = markers;
+                    } else {
+                        waypointMarkers = markers;
+                    }
+
+                    if (latLngs.length > 1) {
+                        mapInstance.fitBounds(L.latLngBounds(latLngs), { padding: [50, 50] });
+                    } else if (latLngs.length === 1) {
+                        mapInstance.setView(latLngs[0], 13);
+                    }
+                }
                 
                 if (window.innerWidth < 1024) {
                     showPage('route');
