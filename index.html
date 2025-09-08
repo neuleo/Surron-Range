@@ -165,15 +165,18 @@
     <script>
         // ===== API Keys & Constants =====
         const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImIzNTk3Mjc5MTZmNTQyZTdiNWI2MmMxOTJkZDMxNDQ0IiwiaCI6Im11cm11cjY0In0=';
-        const sportKmPerPercent = 26.4 / 59;
-        const ecoFactor = 1.75; 
-        const ecoKmPerPercent = sportKmPerPercent * ecoFactor;
+        
+        // Constants derived from sur_ron_data.csv
+        const sportKmPerPercent = 0.4569;
+        const ecoKmPerPercent = 0.5493;
+        
         const sportPercentPerKm = 1 / sportKmPerPercent;
-        const sportPercentPerMeterUp = 0.0205;
-        const sportPercentPerMeterDown = -0.0203;
-        const ecoPercentPerKm = sportPercentPerKm / ecoFactor;
-        const ecoPercentPerMeterUp = sportPercentPerMeterUp / ecoFactor;
-        const ecoPercentPerMeterDown = sportPercentPerMeterDown / ecoFactor;
+        const sportPercentPerMeterUp = 0.02193;
+        const sportPercentPerMeterDown = -0.01823;
+
+        const ecoPercentPerKm = 1 / ecoKmPerPercent;
+        const ecoPercentPerMeterUp = 0.00727;
+        const ecoPercentPerMeterDown = -0.01467;
 
         // ===== DOM Elements =====
         const batterySlider = document.getElementById('battery-slider');
