@@ -405,9 +405,10 @@
                     const returnResponse = await fetch(`https://api.openrouteservice.org/v2/directions/cycling-mountain/geojson`, { method: 'POST', headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ coordinates: [coords[coords.length - 1], coords[0]], elevation: true }) });
                     const returnData = await returnResponse.json();
                     const returnRoute = returnData.features[0];
-                    const returnDist = returnRoute.properties.summary.distance / 1000;
-                    const returnAscent = returnRoute.properties.summary.ascent || 0;
-                    const returnDescent = returnRoute.properties.summary.descent || 0;
+                    const returnSegment = returnRoute.properties.segments[0];
+                    const returnDist = returnSegment.distance / 1000;
+                    const returnAscent = returnSegment.ascent || 0;
+                    const returnDescent = returnSegment.descent || 0;
                     const sportReturnNeeded = (returnDist * sportPercentPerKm) + (returnAscent * sportPercentPerMeterUp) + (returnDescent * sportPercentPerMeterDown);
                     const ecoReturnNeeded = (returnDist * ecoPercentPerKm) + (returnAscent * ecoPercentPerMeterUp) + (returnDescent * ecoPercentPerMeterDown);
                     const finalSportBattery = sportBattery - sportReturnNeeded;
