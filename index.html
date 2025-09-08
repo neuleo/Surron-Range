@@ -550,26 +550,44 @@
                         </div>
                     </div>`;
                 });
-                resultsContainer.innerHTML = `<div class="space-y-3">${resultsHtml}</div>`;
 
                 // Return trip logic
                 const startCoords = JSON.stringify(coords[0]);
                 const endCoords = JSON.stringify(coords[coords.length - 1]);
+                let returnDist = 0;
+                let returnTripHtml = '';
+
                 if (startCoords !== endCoords) {
                     const returnResponse = await fetch(`https://api.openrouteservice.org/v2/directions/cycling-mountain/geojson`, { method: 'POST', headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ coordinates: [coords[coords.length - 1], coords[0]], elevation: true }) });
                     const returnData = await returnResponse.json();
                     const returnRoute = returnData.features[0];
                     const returnSegment = returnRoute.properties.segments[0];
-                    const returnDist = returnSegment.distance / 1000;
+                    returnDist = returnSegment.distance / 1000;
                     const returnAscent = returnSegment.ascent || 0;
                     const returnDescent = returnSegment.descent || 0;
                     const sportReturnNeeded = (returnDist * sportPercentPerKm) + (returnAscent * sportPercentPerMeterUp) + (returnDescent * sportPercentPerMeterDown);
                     const ecoReturnNeeded = (returnDist * ecoPercentPerKm) + (returnAscent * ecoPercentPerMeterUp) + (returnDescent * ecoPercentPerMeterDown);
                     const finalSportBattery = sportBattery - sportReturnNeeded;
                     const finalEcoBattery = ecoBattery - ecoReturnNeeded;
-                    const returnHtml = `<div class="p-3 mt-3 bg-gray-900 rounded-lg border border-dashed border-gray-600"><p class="font-bold">Direkter Rückweg</p><p class="text-sm text-gray-400">Distanz: ${returnDist.toFixed(1)} km, ${returnAscent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${returnDescent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p><div class="grid grid-cols-2 gap-2 pt-1 text-center"><div><p class="text-xs text-gray-400">Ankunft Zuhause (Sport)</p><p class="font-bold ${finalSportBattery < 10 ? 'text-red-500' : ''}">${finalSportBattery > 0 ? finalSportBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div><div><p class="text-xs text-gray-400">Ankunft Zuhause (Eco)</p><p class="font-bold ${finalEcoBattery < 10 ? 'text-red-500' : ''}">${finalEcoBattery > 0 ? finalEcoBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div></div></div>`;
-                    resultsContainer.innerHTML += returnHtml;
+                    returnTripHtml = `<div class="p-3 mt-3 bg-gray-900 rounded-lg border border-dashed border-gray-600"><p class="font-bold">Direkter Rückweg</p><p class="text-sm text-gray-400">Distanz: ${returnDist.toFixed(1)} km, ${returnAscent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${returnDescent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p><div class="grid grid-cols-2 gap-2 pt-1 text-center"><div><p class="text-xs text-gray-400">Ankunft Zuhause (Sport)</p><p class="font-bold ${finalSportBattery < 10 ? 'text-red-500' : ''}">${finalSportBattery > 0 ? finalSportBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div><div><p class="text-xs text-gray-400">Ankunft Zuhause (Eco)</p><p class="font-bold ${finalEcoBattery < 10 ? 'text-red-500' : ''}">${finalEcoBattery > 0 ? finalEcoBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div></div></div>`;
                 }
+
+                // Add total distance summary
+                const totalDistance = route.properties.summary.distance / 1000;
+                let summaryHtml = `<div class="p-3 mb-4 bg-gray-900 rounded-lg text-center">
+                    <p class="text-lg font-bold">Gesamtdistanz (Hinfahrt): ${totalDistance.toFixed(1)} km</p>`;
+
+                if (returnDist > 0) {
+                    const totalDistanceWithReturn = totalDistance + returnDist;
+                    summaryHtml += `<p class="text-lg font-bold mt-1">Gesamtdistanz (inkl. Rückfahrt): ${totalDistanceWithReturn.toFixed(1)} km</p>`;
+                }
+                summaryHtml += `</div>`;
+
+                // Assemble the final HTML
+                resultsContainer.innerHTML =
+                    summaryHtml +
+                    `<div class="space-y-3">${resultsHtml}</div>` +
+                    returnTripHtml;
 
                 const buttonContainer = document.createElement('div');
                 buttonContainer.className = 'mt-4 flex flex-col sm:flex-col sm:space-x-2 space-y-2 sm:space-y-0';
