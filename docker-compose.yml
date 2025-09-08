@@ -5,3 +5,4 @@ services:
     ports:
       - "822:80"
     container_name: sur-ron-app
+    restart: unless-stopped

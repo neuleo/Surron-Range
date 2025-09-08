@@ -22,8 +22,7 @@
         #map { height: 250px; border-radius: 1rem; z-index: 10; transition: height 0.3s ease-in-out; }
         #map.large { height: 500px; }
         @media (min-width: 1024px) {
-            #map { height: 500px; }
-            #map.large { height: 700px; }
+            #map-desktop { height: 100%; }
         }
         .leaflet-control-attribution { font-size: 0.7rem !important; }
         .leaflet-control-attribution a { color: #f97316 !important; }
@@ -39,13 +38,14 @@
         .drag-handle { cursor: grab; }
         .drag-handle:active { cursor: grabbing; }
         .sortable-ghost { background: #4a5568; opacity: 0.5; }
+        .favorite-item { background-color: #4a5568; padding: 0.5rem 0.75rem; border-radius: 0.5rem; display: flex; align-items: center; justify-content: space-between; }
     </style>
 </head>
 <body class="bg-gray-900 text-white flex items-start sm:items-center justify-center min-h-screen">
 
-    <div class="w-full max-w-md md:max-w-2xl lg:max-w-7xl mx-auto bg-gray-800 rounded-3xl shadow-2xl my-8 sm:my-0 relative">
+    <div class="w-full max-w-md md:max-w-2xl lg:max-w-7xl mx-auto bg-gray-800 rounded-3xl shadow-2xl my-8 sm:my-0 relative overflow-hidden">
         
-        <button id="menu-button" class="absolute top-4 right-4 z-30 p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 lg:hidden">
+        <button id="menu-button" class="absolute top-4 left-4 z-30 p-2 rounded-full bg-gray-700/50 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-orange-500 lg:hidden">
             <svg id="menu-icon-open" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7" /></svg>
             <svg id="menu-icon-close" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-white hidden" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
         </button>
@@ -54,7 +54,7 @@
         <div class="lg:hidden">
             <!-- ===== Calculator Page ===== -->
             <div id="calculator-page">
-                <div class="bg-gray-700 rounded-t-3xl"><img src="https://placehold.co/600x300/1f2937/ffffff?text=SUR-RON" alt="Surron E-Bike" class="w-full h-auto object-cover rounded-t-3xl" onerror="this.onerror=null;this.src='https://placehold.co/600x300/1f2937/ffffff?text=Surron+Bild+fehlt';"></div>
+                <div class="bg-gray-700"><img src="https://placehold.co/600x300/1f2937/ffffff?text=SUR-RON" alt="Surron E-Bike" class="w-full h-auto object-cover" onerror="this.onerror=null;this.src='https://placehold.co/600x300/1f2937/ffffff?text=Surron+Bild+fehlt';"></div>
                 <div class="p-6 md:p-8 space-y-6">
                     <div class="text-center"><h1 class="text-2xl font-bold text-white">Reichweitenrechner</h1><p class="text-gray-400">Gib deinen aktuellen Akkustand an.</p></div>
                     <div class="text-center"><div class="flex items-center justify-center space-x-4"><button id="minus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">-</button><span id="battery-level-display" class="text-5xl font-black text-orange-500 w-32 text-center">100%</span><button id="plus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">+</button></div></div>
@@ -69,7 +69,10 @@
             <div id="route-page" class="hidden">
                 <div class="p-6 md:p-8">
                     <div class="space-y-4">
-                        <div class="text-center"><h1 class="text-2xl font-bold text-white">Routenplaner</h1><p class="text-gray-400">Plane eine Tour mit mehreren Stops.</p></div>
+                        <div class="flex justify-between items-center pl-12">
+                            <h1 class="text-2xl font-bold text-white">Routenplaner</h1>
+                            <button id="manage-favorites-btn" class="text-sm text-orange-400 hover:text-orange-500">Favoriten</button>
+                        </div>
                         <div id="stops-container" class="space-y-4"></div>
                         <button id="add-stop-btn" class="w-full border-2 border-dashed border-gray-600 hover:border-orange-600 text-gray-400 font-bold py-2 px-4 rounded-lg focus:outline-none">+ Stop hinzufügen</button>
                         <div class="flex items-center space-x-2">
@@ -85,17 +88,32 @@
                     </div>
                 </div>
             </div>
+            
+            <!-- ===== Favorites Page ===== -->
+            <div id="favorites-page" class="hidden">
+                <div class="p-6 md:p-8 space-y-4">
+                    <div class="flex justify-between items-center pl-12">
+                        <h1 class="text-2xl font-bold text-white">Favoriten</h1>
+                        <button id="back-to-route-btn" class="text-sm text-orange-400 hover:text-orange-500">Zurück</button>
+                    </div>
+                    <div id="favorites-list-container" class="space-y-2"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Desktop Layout -->
         <div class="hidden lg:flex p-8 space-x-8">
             <!-- Route Planner Column -->
-            <div class="w-1/2 space-y-4">
-                <div class="text-center"><h1 class="text-2xl font-bold text-white">Routenplaner</h1><p class="text-gray-400">Plane eine Tour mit mehreren Stops.</p></div>
+            <div class="w-1/2 space-y-4 flex flex-col">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl font-bold text-white">Routenplaner</h1>
+                    <button id="manage-favorites-btn-desktop" class="text-sm text-orange-400 hover:text-orange-500">Favoriten verwalten</button>
+                </div>
+                <p class="text-gray-400">Plane eine Tour mit mehreren Stops.</p>
                 <div id="stops-container-desktop" class="space-y-4"></div>
                 <button id="add-stop-btn-desktop" class="w-full border-2 border-dashed border-gray-600 hover:border-orange-600 text-gray-400 font-bold py-2 px-4 rounded-lg focus:outline-none">+ Stop hinzufügen</button>
                 <button id="calculate-route-btn-desktop" class="w-full bg-orange-600 hover:bg-orange-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-orange-500">Route berechnen</button>
-                <div id="route-results-desktop"></div>
+                <div id="route-results-desktop" class="flex-grow overflow-y-auto"></div>
             </div>
             <!-- Right Column -->
             <div class="w-1/2 flex flex-col space-y-8">
@@ -117,10 +135,10 @@
     </div>
 
     <!-- Save Place Modal -->
-    <div id="save-place-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-        <div class="bg-gray-800 rounded-lg p-6 w-11/12 max-w-sm space-y-4">
+    <div id="save-place-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-sm space-y-4 shadow-2xl">
             <h2 class="text-xl font-bold">Ort speichern</h2>
-            <p id="save-place-label" class="text-gray-400"></p>
+            <p id="save-place-label" class="text-gray-400 p-2 bg-gray-700 rounded-md text-sm"></p>
             <div>
                 <label for="place-name-input" class="block text-sm font-medium text-gray-400">Name des Ortes</label>
                 <input type="text" id="place-name-input" class="mt-1 block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-2 focus:ring-orange-500 focus:border-orange-500">
@@ -131,19 +149,28 @@
             </div>
         </div>
     </div>
+    
+    <!-- Favorites Modal (for Desktop) -->
+    <div id="favorites-modal-desktop" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
+        <div class="bg-gray-800 rounded-2xl p-6 w-full max-w-md space-y-4 shadow-2xl">
+            <div class="flex justify-between items-center">
+                <h1 class="text-2xl font-bold text-white">Favoriten verwalten</h1>
+                <button id="back-to-route-btn-desktop" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div id="favorites-list-container-desktop" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
+        </div>
+    </div>
+
 
     <script>
         // ===== API Keys & Constants =====
         const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImIzNTk3Mjc5MTZmNTQyZTdiNWI2MmMxOTJkZDMxNDQ0IiwiaCI6Im11cm11cjY0In0=';
         const sportKmPerPercent = 26.4 / 59;
-        const ecoFactor = 1.3; // Data-driven factor based on provided Eco rides
+        const ecoFactor = 1.75; 
         const ecoKmPerPercent = sportKmPerPercent * ecoFactor;
-
-        // Neue Logik für Höhenmeter basierend auf sur_ron_data.csv
         const sportPercentPerKm = 1 / sportKmPerPercent;
-        const sportPercentPerMeterUp = 0.0205; // % pro Höhenmeter bergauf
-        const sportPercentPerMeterDown = -0.0203; // % pro Höhenmeter bergab (Rekuperation)
-        
+        const sportPercentPerMeterUp = 0.0205;
+        const sportPercentPerMeterDown = -0.0203;
         const ecoPercentPerKm = sportPercentPerKm / ecoFactor;
         const ecoPercentPerMeterUp = sportPercentPerMeterUp / ecoFactor;
         const ecoPercentPerMeterDown = sportPercentPerMeterDown / ecoFactor;
@@ -161,6 +188,7 @@
         const menuIconClose = document.getElementById('menu-icon-close');
         const calculatorPage = document.getElementById('calculator-page');
         const routePage = document.getElementById('route-page');
+        const favoritesPage = document.getElementById('favorites-page');
         const calculateRouteBtn = document.getElementById('calculate-route-btn');
         const stopsContainer = document.getElementById('stops-container');
         const addStopBtn = document.getElementById('add-stop-btn');
@@ -171,6 +199,9 @@
         const cancelSaveBtn = document.getElementById('cancel-save-btn');
         const confirmSaveBtn = document.getElementById('confirm-save-btn');
         const toggleMapSizeBtn = document.getElementById('toggle-map-size-btn');
+        const manageFavoritesBtn = document.getElementById('manage-favorites-btn');
+        const backToRouteBtn = document.getElementById('back-to-route-btn');
+        const favoritesListContainer = document.getElementById('favorites-list-container');
 
         // Desktop Elements
         const batterySliderDesktop = document.getElementById('battery-slider-desktop');
@@ -184,90 +215,54 @@
         const stopsContainerDesktop = document.getElementById('stops-container-desktop');
         const addStopBtnDesktop = document.getElementById('add-stop-btn-desktop');
         const routeResultsDesktop = document.getElementById('route-results-desktop');
+        const manageFavoritesBtnDesktop = document.getElementById('manage-favorites-btn-desktop');
+        const favoritesModalDesktop = document.getElementById('favorites-modal-desktop');
+        const favoritesListContainerDesktop = document.getElementById('favorites-list-container-desktop');
+        const backToRouteBtnDesktop = document.getElementById('back-to-route-btn-desktop');
+
 
         // ===== State & Map Variables =====
-        let map, routeLayer, sortable, desktopMap, desktopRouteLayer, desktopSortable;
+        let map, routeLayer, sortable, desktopMap, desktopRouteLayer, desktopSortable, favoritesSortable, desktopFavoritesSortable;
         let waypoints = [ { label: '', coords: null }, { label: '', coords: null } ];
         let placeToSave = {};
+        let activePage = 'calculator'; // calculator, route, favorites
 
         // ===== Utility Functions =====
         const debounce = (func, delay) => { let timeout; return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
 
         // ===== State Management (localStorage) =====
-        function saveState() { 
-            const state = { 
-                battery: batterySlider.value, 
-                mode: document.querySelector('input[name="mode"]:checked').value, 
-                throttled: capacityToggle.checked 
-            }; 
-            localStorage.setItem('surRonRangeState', JSON.stringify(state)); 
-        }
-        function loadState() { 
-            const savedState = localStorage.getItem('surRonRangeState'); 
-            if (savedState) { 
-                const state = JSON.parse(savedState); 
-                batterySlider.value = state.battery; 
-                batterySliderDesktop.value = state.battery;
-                capacityToggle.checked = state.throttled; 
-                capacityToggleDesktop.checked = state.throttled;
-                document.querySelector(`input[name="mode"][value="${state.mode}"]`).checked = true; 
-                document.querySelector(`input[name="mode-desktop"][value="${state.mode}"]`).checked = true;
-            } 
-        }
+        function saveState() { const state = { battery: batterySlider.value, mode: document.querySelector('input[name="mode"]:checked')?.value || 'sport', throttled: capacityToggle.checked }; localStorage.setItem('surRonRangeState', JSON.stringify(state)); }
+        function loadState() { const savedState = localStorage.getItem('surRonRangeState'); if (savedState) { const state = JSON.parse(savedState); batterySlider.value = state.battery; batterySliderDesktop.value = state.battery; capacityToggle.checked = state.throttled; capacityToggleDesktop.checked = state.throttled; document.querySelector(`input[name="mode"][value="${state.mode}"]`).checked = true; document.querySelector(`input[name="mode-desktop"][value="${state.mode}"]`).checked = true; } }
         function getSavedPlaces() { const places = localStorage.getItem('surRonSavedPlaces'); return places ? JSON.parse(places) : []; }
+        function setSavedPlaces(places) { localStorage.setItem('surRonSavedPlaces', JSON.stringify(places)); }
         
-        function openSavePlaceModal(label, coords) {
-            placeToSave = { label, coords };
-            savePlaceLabel.textContent = label;
-            placeNameInput.value = '';
-            savePlaceModal.classList.remove('hidden');
-            placeNameInput.focus();
-        }
+        function openSavePlaceModal(label, coords) { placeToSave = { label, coords }; savePlaceLabel.textContent = label; placeNameInput.value = ''; savePlaceModal.classList.remove('hidden'); placeNameInput.focus(); }
+        function closeSavePlaceModal() { savePlaceModal.classList.add('hidden'); }
+        function confirmSavePlace() { const name = placeNameInput.value; if (name && placeToSave.label) { const places = getSavedPlaces(); const newPlace = { id: Date.now(), name, label: placeToSave.label, coords: placeToSave.coords }; places.push(newPlace); setSavedPlaces(places); closeSavePlaceModal(); } }
 
-        function closeSavePlaceModal() {
-            savePlaceModal.classList.add('hidden');
-        }
-
-        function confirmSavePlace() {
-            const name = placeNameInput.value;
-            if (name && placeToSave.label) {
-                const places = getSavedPlaces();
-                const newPlace = { id: Date.now(), name, label: placeToSave.label, coords: placeToSave.coords };
-                places.push(newPlace);
-                localStorage.setItem('surRonSavedPlaces', JSON.stringify(places));
-                closeSavePlaceModal();
-            }
+        // ===== Page & Modal Navigation =====
+        function showPage(page) {
+            calculatorPage.classList.add('hidden');
+            routePage.classList.add('hidden');
+            favoritesPage.classList.add('hidden');
+            if (page === 'calculator') calculatorPage.classList.remove('hidden');
+            if (page === 'route') routePage.classList.remove('hidden');
+            if (page === 'favorites') favoritesPage.classList.remove('hidden');
+            activePage = page;
+            
+            const isCalculator = page === 'calculator';
+            menuIconOpen.classList.toggle('hidden', !isCalculator);
+            menuIconClose.classList.toggle('hidden', isCalculator);
         }
 
         // ===== Core Calculator Logic =====
-        function calculateRange() { 
-            const actualBatteryLevel = parseInt(batterySlider.value); 
-            const selectedMode = document.querySelector('input[name="mode"]:checked').value; 
-            const isThrottledMode = capacityToggle.checked; 
-            let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; 
-            let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; 
-            batteryLevelDisplay.textContent = `${actualBatteryLevel}%`; 
-            rangeOutput.textContent = remainingRange.toFixed(1); 
-        }
+        function calculateRange() { const actualBatteryLevel = parseInt(batterySlider.value); const selectedMode = document.querySelector('input[name="mode"]:checked').value; const isThrottledMode = capacityToggle.checked; let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; batteryLevelDisplay.textContent = `${actualBatteryLevel}%`; rangeOutput.textContent = remainingRange.toFixed(1); }
         function updateAndSave() { calculateRange(); saveState(); }
-
-        function calculateRangeDesktop() { 
-            const actualBatteryLevel = parseInt(batterySliderDesktop.value); 
-            const selectedMode = document.querySelector('input[name="mode-desktop"]:checked').value; 
-            const isThrottledMode = capacityToggleDesktop.checked; 
-            let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; 
-            let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; 
-            batteryLevelDisplayDesktop.textContent = `${actualBatteryLevel}%`; 
-            rangeOutputDesktop.textContent = remainingRange.toFixed(1); 
-        }
+        function calculateRangeDesktop() { const actualBatteryLevel = parseInt(batterySliderDesktop.value); const selectedMode = document.querySelector('input[name="mode-desktop"]:checked').value; const isThrottledMode = capacityToggleDesktop.checked; let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; batteryLevelDisplayDesktop.textContent = `${actualBatteryLevel}%`; rangeOutputDesktop.textContent = remainingRange.toFixed(1); }
         function updateAndSaveDesktop() { calculateRangeDesktop(); saveState(); }
 
         // ===== Map & Route Logic =====
-        function initMap(mapId = 'map') {
-            let mapInstance = L.map(mapId).setView([51.1657, 10.4515], 6);
-            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(mapInstance);
-            return mapInstance;
-        }
+        function initMap(mapId = 'map') { let mapInstance = L.map(mapId).setView([51.1657, 10.4515], 6); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '© <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>' }).addTo(mapInstance); return mapInstance; }
         
         function setupMapInteractions(mapInstance) {
             let longPressTimeout;
@@ -275,49 +270,20 @@
                 longPressTimeout = setTimeout(async () => {
                     mapInstance.closePopup();
                     const { lat, lng } = e.latlng;
-                    
                     try {
                         const response = await fetch(`https://api.openrouteservice.org/geocode/reverse?api_key=${ORS_API_KEY}&point.lon=${lng}&point.lat=${lat}&size=1`);
                         const data = await response.json();
-                        
                         if (data.features && data.features.length > 0) {
                             const place = data.features[0];
-                            const newWaypoint = {
-                                label: place.properties.label,
-                                coords: place.geometry.coordinates
-                            };
-
+                            const newWaypoint = { label: place.properties.label, coords: place.geometry.coordinates };
                             const emptyStopIndex = waypoints.findIndex(w => !w.coords);
-                            
-                            if (emptyStopIndex !== -1) {
-                                waypoints[emptyStopIndex] = newWaypoint;
-                            } else {
-                                waypoints.splice(waypoints.length - 1, 0, newWaypoint);
-                            }
-                            renderStops();
-                            if(window.innerWidth >= 1024) renderStopsDesktop();
-                            
-                            L.popup()
-                             .setLatLng(e.latlng)
-                             .setContent(`<b>${place.properties.name || 'Punkt'}</b><br>wurde zur Route hinzugefügt.`)
-                             .openOn(mapInstance);
-
-                        } else {
-                            L.popup()
-                             .setLatLng(e.latlng)
-                             .setContent("Ort konnte nicht gefunden werden.")
-                             .openOn(mapInstance);
-                        }
-                    } catch (error) {
-                        console.error("Fehler beim Reverse Geocoding:", error);
-                        L.popup()
-                             .setLatLng(e.latlng)
-                             .setContent("Fehler bei der Adresssuche.")
-                             .openOn(mapInstance);
-                    }
+                            if (emptyStopIndex !== -1) { waypoints[emptyStopIndex] = newWaypoint; } else { waypoints.splice(waypoints.length - 1, 0, newWaypoint); }
+                            renderStops(); if(window.innerWidth >= 1024) renderStopsDesktop();
+                            L.popup().setLatLng(e.latlng).setContent(`<b>${place.properties.name || 'Punkt'}</b><br>wurde zur Route hinzugefügt.`).openOn(mapInstance);
+                        } else { L.popup().setLatLng(e.latlng).setContent("Ort konnte nicht gefunden werden.").openOn(mapInstance); }
+                    } catch (error) { console.error("Fehler beim Reverse Geocoding:", error); L.popup().setLatLng(e.latlng).setContent("Fehler bei der Adresssuche.").openOn(mapInstance); }
                 }, 750);
             });
-
             mapInstance.on('mouseup', function () { clearTimeout(longPressTimeout); });
             mapInstance.on('movestart', function () { clearTimeout(longPressTimeout); });
         }
@@ -329,41 +295,22 @@
                 const isStart = index === 0;
                 const isEnd = index === waypoints.length - 1;
                 let labelText = isStart ? 'Start' : (isEnd ? 'Ziel' : `Stop ${index}`);
-
                 const stopDiv = document.createElement('div');
                 stopDiv.className = 'stop-item bg-gray-700/50 p-2 rounded-md flex items-center space-x-3';
-                stopDiv.innerHTML = `
-                    <svg class="drag-handle h-6 w-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><circle cx="7" cy="5" r="1.5" /><circle cx="13" cy="5" r="1.5" /><circle cx="7" cy="10" r="1.5" /><circle cx="13" cy="10" r="1.5" /><circle cx="7" cy="15" r="1.5" /><circle cx="13" cy="15" r="1.5" /></svg>
-                    <div class="flex-grow">
-                        <label class="text-sm font-medium text-gray-400">${labelText}</label>
-                        <div class="flex items-center space-x-2 mt-1">
-                            <div class="relative flex-grow">
-                                <input type="text" data-index="${index}" class="stop-input block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-2 focus:ring-orange-500 focus:border-orange-500" autocomplete="off" value="${waypoint.label}">
-                                <div class="autocomplete-suggestions absolute w-full mt-1 z-20"></div>
-                            </div>
-                            ${!isStart ? `<button data-index="${index}" class="remove-stop-btn p-2 bg-gray-700 rounded-md hover:bg-red-600" title="Stop entfernen">&times;</button>` : `<button class="current-loc-btn p-2 bg-gray-700 rounded-md hover:bg-orange-600" title="Aktuellen Standort verwenden"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></button>`}
-                        </div>
-                    </div>
-                `;
+                stopDiv.innerHTML = `<svg class="drag-handle h-6 w-6 text-gray-500" viewBox="0 0 20 20" fill="currentColor"><circle cx="7" cy="5" r="1.5" /><circle cx="13" cy="5" r="1.5" /><circle cx="7" cy="10" r="1.5" /><circle cx="13" cy="10" r="1.5" /><circle cx="7" cy="15" r="1.5" /><circle cx="13" cy="15" r="1.5" /></svg><div class="flex-grow"><label class="text-sm font-medium text-gray-400">${labelText}</label><div class="flex items-center space-x-2 mt-1"><div class="relative flex-grow"><input type="text" data-index="${index}" class="stop-input block w-full bg-gray-700 border-gray-600 text-white rounded-md shadow-sm p-2 focus:ring-orange-500 focus:border-orange-500" autocomplete="off" value="${waypoint.label}"><div class="autocomplete-suggestions absolute w-full mt-1 z-20"></div></div>${!isStart ? `<button data-index="${index}" class="remove-stop-btn p-2 bg-gray-700 rounded-md hover:bg-red-600" title="Stop entfernen">&times;</button>` : `<button class="current-loc-btn p-2 bg-gray-700 rounded-md hover:bg-orange-600" title="Aktuellen Standort verwenden"><svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.05 4.05a7 7 0 119.9 9.9L10 18.9l-4.95-4.95a7 7 0 010-9.9zM10 11a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd" /></svg></button>`}</div></div>`;
                 stopsContainerEl.appendChild(stopDiv);
             });
             attachStopListeners(isDesktop);
-            if(isDesktop) {
-                desktopSortable = new Sortable(stopsContainerDesktop, { animation: 150, handle: '.drag-handle', delay: 200, delayOnTouchOnly: true, onEnd: (evt) => { const movedItem = waypoints.splice(evt.oldIndex, 1)[0]; waypoints.splice(evt.newIndex, 0, movedItem); renderStopsDesktop(); } });
-            } else {
-                sortable = new Sortable(stopsContainer, { animation: 150, handle: '.drag-handle', delay: 200, delayOnTouchOnly: true, onEnd: (evt) => { const movedItem = waypoints.splice(evt.oldIndex, 1)[0]; waypoints.splice(evt.newIndex, 0, movedItem); renderStops(); } });
-            }
+            const onEnd = (evt) => { const movedItem = waypoints.splice(evt.oldIndex, 1)[0]; waypoints.splice(evt.newIndex, 0, movedItem); if (isDesktop) renderStopsDesktop(); else renderStops(); };
+            if(isDesktop) { desktopSortable = new Sortable(stopsContainerDesktop, { animation: 150, handle: '.drag-handle', onEnd }); } 
+            else { sortable = new Sortable(stopsContainer, { animation: 150, handle: '.drag-handle', onEnd }); }
         }
-
         function renderStops() { renderStopsGeneric(stopsContainer, sortable, false); }
         function renderStopsDesktop() { renderStopsGeneric(stopsContainerDesktop, desktopSortable, true); }
 
         function attachStopListeners(isDesktop) {
             const selector = isDesktop ? '#stops-container-desktop' : '#stops-container';
-            document.querySelector(selector).querySelectorAll('.stop-input').forEach(input => {
-                input.addEventListener('input', debounce(handleAutocomplete, 150));
-                input.addEventListener('focus', handleAutocomplete);
-            });
+            document.querySelector(selector).querySelectorAll('.stop-input').forEach(input => { input.addEventListener('input', debounce(handleAutocomplete, 150)); input.addEventListener('focus', handleAutocomplete); });
             document.querySelector(selector).querySelectorAll('.remove-stop-btn').forEach(btn => { btn.addEventListener('click', (e) => { waypoints.splice(e.currentTarget.dataset.index, 1); renderStops(); if(isDesktop) renderStopsDesktop(); }); });
             document.querySelector(selector).querySelectorAll('.current-loc-btn').forEach(btn => { btn.addEventListener('click', getCurrentLocation); });
         }
@@ -404,180 +351,118 @@
                 if (isSaved) { labelDiv.innerHTML = `<div class="name">⭐ ${name}</div><div class="address">${label}</div>`; } else { labelDiv.textContent = label; }
                 item.appendChild(labelDiv);
                 if (!isSaved) { const saveBtn = document.createElement('button'); saveBtn.className = 'save-place-btn'; saveBtn.innerHTML = '&#11088;'; saveBtn.title = "Ort speichern"; item.appendChild(saveBtn); }
+                
+                const handleSelect = (e) => {
+                    e.preventDefault(); e.stopPropagation();
+                    if (e.target.closest('.save-place-btn')) { openSavePlaceModal(item.dataset.label, JSON.parse(item.dataset.coords)); } 
+                    else { input.value = item.dataset.label; waypoints[input.dataset.index] = { label: item.dataset.label, coords: JSON.parse(item.dataset.coords) }; }
+                    container.innerHTML = '';
+                };
+                item.addEventListener('mousedown', handleSelect);
+                item.addEventListener('touchstart', handleSelect, { passive: false });
                 fragment.appendChild(item);
             });
             container.appendChild(fragment);
-
-            const selectEvent = ('ontouchstart' in window) ? 'touchstart' : 'mousedown';
-            container.addEventListener(selectEvent, (e) => {
-                e.preventDefault();
-                const targetItem = e.target.closest('.suggestion-item');
-                if (!targetItem) return;
-
-                if (e.target.closest('.save-place-btn')) {
-                    e.stopPropagation();
-                    openSavePlaceModal(targetItem.dataset.label, JSON.parse(targetItem.dataset.coords));
-                    return;
-                }
-                
-                input.value = targetItem.dataset.label;
-                waypoints[input.dataset.index] = { label: targetItem.dataset.label, coords: JSON.parse(targetItem.dataset.coords) };
-                container.innerHTML = '';
-            });
         }
 
         async function getCurrentLocation() { if (!navigator.geolocation) { alert("Geolocation wird von deinem Browser nicht unterstützt."); return; } navigator.geolocation.getCurrentPosition(async (position) => { const { latitude, longitude } = position.coords; const response = await fetch(`https://api.openrouteservice.org/geocode/reverse?api_key=${ORS_API_KEY}&point.lon=${longitude}&point.lat=${latitude}`); const data = await response.json(); if (data.features && data.features.length > 0) { const place = data.features[0]; waypoints[0] = { label: place.properties.label, coords: place.geometry.coordinates }; renderStops(); if(window.innerWidth >= 1024) renderStopsDesktop(); } else { alert("Dein Standort konnte nicht in eine Adresse umgewandelt werden."); } }, () => alert("Standortzugriff verweigert.")); }
 
         async function calculateRouteGeneric(btn, resultsContainer, mapInstance, routeLayerInstance, isDesktop) {
             const filledWaypoints = waypoints.filter(w => w.coords);
-            if (filledWaypoints.length < 2) {
-                alert("Bitte mindestens Start und Ziel angeben.");
-                return;
-            }
-            btn.disabled = true;
-            btn.textContent = "Berechne...";
+            if (filledWaypoints.length < 2) { alert("Bitte mindestens Start und Ziel angeben."); return; }
+            btn.disabled = true; btn.textContent = "Berechne...";
             try {
                 const coords = filledWaypoints.map(w => w.coords);
-                const response = await fetch(`https://api.openrouteservice.org/v2/directions/cycling-mountain/geojson`, {
-                    method: 'POST',
-                    headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ coordinates: coords, elevation: true }) // Höhenmeter anfordern
-                });
+                const response = await fetch(`https://api.openrouteservice.org/v2/directions/cycling-mountain/geojson`, { method: 'POST', headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ coordinates: coords, elevation: true }) });
                 if (!response.ok) throw new Error('Fehler bei der Routenberechnung.');
                 const data = await response.json();
                 const route = data.features[0];
-                
                 const routeCoords = route.geometry.coordinates.map(c => [c[1], c[0]]);
                 if (routeLayerInstance) mapInstance.removeLayer(routeLayerInstance);
-                
-                if(isDesktop) {
-                    desktopRouteLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance);
-                    mapInstance.fitBounds(desktopRouteLayer.getBounds());
-                } else {
-                    routeLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance);
-                    mapInstance.fitBounds(routeLayer.getBounds());
-                }
+                if(isDesktop) { desktopRouteLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance); mapInstance.fitBounds(desktopRouteLayer.getBounds()); } 
+                else { routeLayer = L.polyline(routeCoords, { color: '#f97316' }).addTo(mapInstance); mapInstance.fitBounds(routeLayer.getBounds()); }
                 
                 let sportBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
                 let ecoBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
                 let resultsHtml = '';
-
                 route.properties.segments.forEach((segment, i) => {
                     const distanceKm = segment.distance / 1000;
                     const ascent = segment.ascent || 0;
                     const descent = segment.descent || 0;
-
                     const sportNeeded = (distanceKm * sportPercentPerKm) + (ascent * sportPercentPerMeterUp) + (descent * sportPercentPerMeterDown);
                     const ecoNeeded = (distanceKm * ecoPercentPerKm) + (ascent * ecoPercentPerMeterUp) + (descent * ecoPercentPerMeterDown);
-                    
                     sportBattery -= sportNeeded;
                     ecoBattery -= ecoNeeded;
-
                     const destinationStop = filledWaypoints[i + 1];
-
-                    resultsHtml += `
-                        <div class="p-3 bg-gray-700 rounded-lg">
-                            <p class="font-bold">Ankunft bei: ${destinationStop.label.substring(0, 30)}...</p>
-                            <p class="text-sm text-gray-400">Etappe: ${distanceKm.toFixed(1)} km, ${ascent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${descent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p>
-                            <div class="grid grid-cols-2 gap-2 pt-1 text-center">
-                                <div>
-                                    <p class="text-xs text-gray-400">Ankunft (Sport)</p>
-                                    <p class="font-bold ${sportBattery < 10 ? 'text-red-500' : ''}">${sportBattery.toFixed(0)}%</p>
-                                </div>
-                                <div>
-                                    <p class="text-xs text-gray-400">Ankunft (Eco)</p>
-                                    <p class="font-bold ${ecoBattery < 10 ? 'text-red-500' : ''}">${ecoBattery.toFixed(0)}%</p>
-                                </div>
-                            </div>
-                        </div>`;
+                    resultsHtml += `<div class="p-3 bg-gray-700 rounded-lg"><p class="font-bold">Ankunft bei: ${destinationStop.label.substring(0, 30)}...</p><p class="text-sm text-gray-400">Etappe: ${distanceKm.toFixed(1)} km, ${ascent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${descent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p><div class="grid grid-cols-2 gap-2 pt-1 text-center"><div><p class="text-xs text-gray-400">Ankunft (Sport)</p><p class="font-bold ${sportBattery < 10 ? 'text-red-500' : ''}">${sportBattery.toFixed(0)}%</p></div><div><p class="text-xs text-gray-400">Ankunft (Eco)</p><p class="font-bold ${ecoBattery < 10 ? 'text-red-500' : ''}">${ecoBattery.toFixed(0)}%</p></div></div></div>`;
                 });
                 resultsContainer.innerHTML = `<div class="space-y-3">${resultsHtml}</div>`;
+
+                // Return trip logic
+                const startCoords = JSON.stringify(coords[0]);
+                const endCoords = JSON.stringify(coords[coords.length - 1]);
+                if (startCoords !== endCoords) {
+                    const returnResponse = await fetch(`https://api.openrouteservice.org/v2/directions/cycling-mountain/geojson`, { method: 'POST', headers: { 'Authorization': ORS_API_KEY, 'Content-Type': 'application/json' }, body: JSON.stringify({ coordinates: [coords[coords.length - 1], coords[0]], elevation: true }) });
+                    const returnData = await returnResponse.json();
+                    const returnRoute = returnData.features[0];
+                    const returnDist = returnRoute.properties.summary.distance / 1000;
+                    const returnAscent = returnRoute.properties.summary.ascent || 0;
+                    const returnDescent = returnRoute.properties.summary.descent || 0;
+                    const sportReturnNeeded = (returnDist * sportPercentPerKm) + (returnAscent * sportPercentPerMeterUp) + (returnDescent * sportPercentPerMeterDown);
+                    const ecoReturnNeeded = (returnDist * ecoPercentPerKm) + (returnAscent * ecoPercentPerMeterUp) + (returnDescent * ecoPercentPerMeterDown);
+                    const finalSportBattery = sportBattery - sportReturnNeeded;
+                    const finalEcoBattery = ecoBattery - ecoReturnNeeded;
+                    const returnHtml = `<div class="p-3 mt-3 bg-gray-900 rounded-lg border border-dashed border-gray-600"><p class="font-bold">Direkter Rückweg</p><p class="text-sm text-gray-400">Distanz: ${returnDist.toFixed(1)} km, ${returnAscent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${returnDescent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p><div class="grid grid-cols-2 gap-2 pt-1 text-center"><div><p class="text-xs text-gray-400">Ankunft Zuhause (Sport)</p><p class="font-bold ${finalSportBattery < 10 ? 'text-red-500' : ''}">${finalSportBattery > 0 ? finalSportBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div><div><p class="text-xs text-gray-400">Ankunft Zuhause (Eco)</p><p class="font-bold ${finalEcoBattery < 10 ? 'text-red-500' : ''}">${finalEcoBattery > 0 ? finalEcoBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div></div></div>`;
+                    resultsContainer.innerHTML += returnHtml;
+                }
 
                 const navButton = document.createElement('button');
                 navButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 16.5V3a1 1 0 00-.106-.447z" /></svg>Navigation starten`;
                 navButton.className = 'w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 flex items-center justify-center';
-                navButton.onclick = () => {
-                    const waypointsForNav = JSON.parse(JSON.stringify(filledWaypoints));
-                    const origin = `${waypointsForNav[0].coords[1]},${waypointsForNav[0].coords[0]}`;
-                    const destination = `${waypointsForNav[waypointsForNav.length - 1].coords[1]},${waypointsForNav[waypointsForNav.length - 1].coords[0]}`;
-                    const waypointsString = waypointsForNav.slice(1, -1).map(w => `${w.coords[1]},${w.coords[0]}`).join('|');
-                    
-                    let navUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`;
-                    if (waypointsString) {
-                        navUrl += `&waypoints=${waypointsString}`;
-                    }
-                    navUrl += `&travelmode=bicycling`;
-
-                    window.open(navUrl, '_blank');
-                };
+                navButton.onclick = () => { const waypointsForNav = JSON.parse(JSON.stringify(filledWaypoints)); const origin = `${waypointsForNav[0].coords[1]},${waypointsForNav[0].coords[0]}`; const destination = `${waypointsForNav[waypointsForNav.length - 1].coords[1]},${waypointsForNav[waypointsForNav.length - 1].coords[0]}`; const waypointsString = waypointsForNav.slice(1, -1).map(w => `${w.coords[1]},${w.coords[0]}`).join('|'); let navUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`; if (waypointsString) { navUrl += `&waypoints=${waypointsString}`; } navUrl += `&travelmode=bicycling`; window.open(navUrl, '_blank'); };
                 resultsContainer.appendChild(navButton);
 
-            } catch (error) {
-                console.error(error);
-                alert(error.message);
-                resultsContainer.innerHTML = `<p class="text-red-500 text-center">Routenberechnung fehlgeschlagen.</p>`;
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Route berechnen";
-            }
+            } catch (error) { console.error(error); alert(error.message); resultsContainer.innerHTML = `<p class="text-red-500 text-center">Routenberechnung fehlgeschlagen.</p>`; } 
+            finally { btn.disabled = false; btn.textContent = "Route berechnen"; }
         }
         async function calculateRoute() { await calculateRouteGeneric(calculateRouteBtn, routeResults, map, routeLayer, false); }
         async function calculateRouteDesktop() { await calculateRouteGeneric(calculateRouteBtnDesktop, routeResultsDesktop, desktopMap, desktopRouteLayer, true); }
 
+        // ===== Favorites Logic =====
+        function renderFavoritesGeneric(container, sortableVar) {
+            if (sortableVar) sortableVar.destroy();
+            container.innerHTML = '';
+            const places = getSavedPlaces();
+            if (places.length === 0) {
+                container.innerHTML = '<p class="text-center text-gray-400">Noch keine Favoriten gespeichert.</p>';
+                return;
+            }
+            places.forEach((place) => {
+                const item = document.createElement('div');
+                item.className = 'favorite-item';
+                item.dataset.id = place.id;
+                item.innerHTML = `<span class="drag-handle pr-2 cursor-move text-gray-500">:::</span><div class="flex-grow"><p class="font-semibold">${place.name}</p><p class="text-xs text-gray-400">${place.label}</p></div><button data-id="${place.id}" class="delete-favorite-btn p-2 text-red-400 hover:text-red-500">&times;</button>`;
+                container.appendChild(item);
+            });
+            container.querySelectorAll('.delete-favorite-btn').forEach(btn => {
+                btn.addEventListener('click', (e) => {
+                    const id = e.currentTarget.dataset.id;
+                    let currentPlaces = getSavedPlaces();
+                    currentPlaces = currentPlaces.filter(p => p.id != id);
+                    setSavedPlaces(currentPlaces);
+                    renderFavorites();
+                    if (window.innerWidth >= 1024) renderFavoritesDesktop();
+                });
+            });
+            const onEnd = (evt) => { let p = getSavedPlaces(); const movedItem = p.splice(evt.oldIndex, 1)[0]; p.splice(evt.newIndex, 0, movedItem); setSavedPlaces(p); };
+            if (container.id.includes('desktop')) { desktopFavoritesSortable = new Sortable(container, { animation: 150, handle: '.drag-handle', onEnd }); }
+            else { favoritesSortable = new Sortable(container, { animation: 150, handle: '.drag-handle', onEnd }); }
+        }
+        function renderFavorites() { renderFavoritesGeneric(favoritesListContainer, favoritesSortable); }
+        function renderFavoritesDesktop() { renderFavoritesGeneric(favoritesListContainerDesktop, desktopFavoritesSortable); }
+
+
         // ===== Event Listeners =====
-        batterySlider.addEventListener('input', updateAndSave);
-        capacityToggle.addEventListener('change', updateAndSave);
-        modeRadios.forEach(radio => radio.addEventListener('change', updateAndSave));
-        plusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) < 100) { batterySlider.value = parseInt(batterySlider.value) + 1; batterySlider.dispatchEvent(new Event('input')); } });
-        minusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) > 0) { batterySlider.value = parseInt(batterySlider.value) - 1; batterySlider.dispatchEvent(new Event('input')); } });
-        
-        batterySliderDesktop.addEventListener('input', updateAndSaveDesktop);
-        capacityToggleDesktop.addEventListener('change', updateAndSaveDesktop);
-        modeRadiosDesktop.forEach(radio => radio.addEventListener('change', updateAndSaveDesktop));
-        plusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) < 100) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) + 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
-        minusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) > 0) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) - 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
-
-        menuButton.addEventListener('click', () => { 
-            const isRoutePageOpen = !routePage.classList.contains('hidden'); 
-            if (isRoutePageOpen) { 
-                routePage.classList.add('hidden'); 
-                calculatorPage.classList.remove('hidden'); 
-                menuIconOpen.classList.remove('hidden'); 
-                menuIconClose.classList.add('hidden'); 
-            } else { 
-                calculatorPage.classList.add('hidden'); 
-                routePage.classList.remove('hidden'); 
-                menuIconOpen.classList.add('hidden'); 
-                menuIconClose.classList.remove('hidden'); 
-                if(!map) {
-                    map = initMap('map');
-                    setupMapInteractions(map);
-                }
-                renderStops(); 
-            } 
-        });
-        addStopBtn.addEventListener('click', addStop);
-        addStopBtnDesktop.addEventListener('click', addStopDesktop);
-        calculateRouteBtn.addEventListener('click', calculateRoute);
-        calculateRouteBtnDesktop.addEventListener('click', calculateRouteDesktop);
-        confirmSaveBtn.addEventListener('click', confirmSavePlace);
-        cancelSaveBtn.addEventListener('click', closeSavePlaceModal);
-
-        toggleMapSizeBtn.addEventListener('click', () => {
-            const mapDiv = document.getElementById('map');
-            
-            const onTransitionEnd = () => {
-                if (map) {
-                    map.invalidateSize();
-                }
-                mapDiv.removeEventListener('transitionend', onTransitionEnd);
-            };
-            mapDiv.addEventListener('transitionend', onTransitionEnd);
-
-            mapDiv.classList.toggle('large');
-        });
-
-        // ===== Initial Load =====
         document.addEventListener('DOMContentLoaded', () => { 
             loadState(); 
             calculateRange(); 
@@ -588,6 +473,47 @@
                 renderStopsDesktop();
                 calculateRangeDesktop();
             }
+        });
+
+        // Mobile Listeners
+        batterySlider.addEventListener('input', updateAndSave);
+        capacityToggle.addEventListener('change', updateAndSave);
+        modeRadios.forEach(radio => radio.addEventListener('change', updateAndSave));
+        plusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) < 100) { batterySlider.value = parseInt(batterySlider.value) + 1; batterySlider.dispatchEvent(new Event('input')); } });
+        minusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) > 0) { batterySlider.value = parseInt(batterySlider.value) - 1; batterySlider.dispatchEvent(new Event('input')); } });
+        menuButton.addEventListener('click', () => { 
+            if (activePage === 'calculator') {
+                showPage('route');
+                if(!map) { map = initMap('map'); setupMapInteractions(map); }
+                renderStops(); 
+            } else {
+                showPage('calculator');
+            }
+        });
+        addStopBtn.addEventListener('click', addStop);
+        calculateRouteBtn.addEventListener('click', calculateRoute);
+        manageFavoritesBtn.addEventListener('click', () => { renderFavorites(); showPage('favorites'); });
+        backToRouteBtn.addEventListener('click', () => showPage('route'));
+
+        // Desktop Listeners
+        batterySliderDesktop.addEventListener('input', updateAndSaveDesktop);
+        capacityToggleDesktop.addEventListener('change', updateAndSaveDesktop);
+        modeRadiosDesktop.forEach(radio => radio.addEventListener('change', updateAndSaveDesktop));
+        plusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) < 100) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) + 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
+        minusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) > 0) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) - 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
+        addStopBtnDesktop.addEventListener('click', addStopDesktop);
+        calculateRouteBtnDesktop.addEventListener('click', calculateRouteDesktop);
+        manageFavoritesBtnDesktop.addEventListener('click', () => { renderFavoritesDesktop(); favoritesModalDesktop.classList.remove('hidden'); });
+        backToRouteBtnDesktop.addEventListener('click', () => favoritesModalDesktop.classList.add('hidden'));
+
+        // Shared Listeners
+        confirmSaveBtn.addEventListener('click', confirmSavePlace);
+        cancelSaveBtn.addEventListener('click', closeSavePlaceModal);
+        toggleMapSizeBtn.addEventListener('click', () => {
+            const mapDiv = document.getElementById('map');
+            const onTransitionEnd = () => { if (map) { map.invalidateSize(); } mapDiv.removeEventListener('transitionend', onTransitionEnd); };
+            mapDiv.addEventListener('transitionend', onTransitionEnd);
+            mapDiv.classList.toggle('large');
         });
     </script>
 
