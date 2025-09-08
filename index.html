@@ -420,17 +420,60 @@
                     resultsContainer.innerHTML += returnHtml;
                 }
 
+                const buttonContainer = document.createElement('div');
+                buttonContainer.className = 'mt-4 flex flex-col sm:flex-col sm:space-x-2 space-y-2 sm:space-y-0';
+
                 const navButton = document.createElement('button');
                 navButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor"><path d="M10.894 2.553a1 1 0 00-1.788 0l-7 14a1 1 0 001.169 1.409l5-1.428A1 1 0 009 16.5V3a1 1 0 00-.106-.447z" /></svg>Navigation starten`;
-                navButton.className = 'w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 flex items-center justify-center';
+                navButton.className = 'w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-indigo-500 flex items-center justify-center';
                 navButton.onclick = () => { const waypointsForNav = JSON.parse(JSON.stringify(filledWaypoints)); const origin = `${waypointsForNav[0].coords[1]},${waypointsForNav[0].coords[0]}`; const destination = `${waypointsForNav[waypointsForNav.length - 1].coords[1]},${waypointsForNav[waypointsForNav.length - 1].coords[0]}`; const waypointsString = waypointsForNav.slice(1, -1).map(w => `${w.coords[1]},${w.coords[0]}`).join('|'); let navUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin}&destination=${destination}`; if (waypointsString) { navUrl += `&waypoints=${waypointsString}`; } navUrl += `&travelmode=bicycling`; window.open(navUrl, '_blank'); };
-                resultsContainer.appendChild(navButton);
+                
+                const gpxButton = document.createElement('button');
+                gpxButton.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block -ml-1 mr-2" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clip-rule="evenodd" /></svg>GPX Herunterladen`;
+                gpxButton.className = 'w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-gray-500 flex items-center justify-center';
+                gpxButton.onclick = () => downloadGpx(route);
+
+                buttonContainer.appendChild(navButton);
+                buttonContainer.appendChild(gpxButton);
+                resultsContainer.appendChild(buttonContainer);
 
             } catch (error) { console.error(error); alert(error.message); resultsContainer.innerHTML = `<p class="text-red-500 text-center">Routenberechnung fehlgeschlagen.</p>`; } 
             finally { btn.disabled = false; btn.textContent = "Route berechnen"; }
         }
         async function calculateRoute() { await calculateRouteGeneric(calculateRouteBtn, routeResults, map, routeLayer, false); }
         async function calculateRouteDesktop() { await calculateRouteGeneric(calculateRouteBtnDesktop, routeResultsDesktop, desktopMap, desktopRouteLayer, true); }
+
+        // ===== GPX Export =====
+        function createGpxString(route) {
+            const coords = route.geometry.coordinates;
+            const trkpts = coords.map(c => {
+                return `<trkpt lat="${c[1]}" lon="${c[0]}"><ele>${c[2]}</ele></trkpt>`;
+            }).join('\n');
+
+            return `<?xml version="1.0" encoding="UTF-8"?>
+<gpx version="1.1" creator="Sur-Ron Range Calculator" xmlns="http://www.topografix.com/GPX/1/1" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd">
+  <metadata><name>Sur-Ron Calculated Route</name></metadata>
+  <trk>
+    <name>Sur-Ron Calculated Route</name>
+    <trkseg>
+      ${trkpts}
+    </trkseg>
+  </trk>
+</gpx>`;
+        }
+
+        function downloadGpx(route) {
+            const gpxData = createGpxString(route);
+            const blob = new Blob([gpxData], { type: 'application/gpx+xml' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'sur-ron-route.gpx';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
 
         // ===== Favorites Logic =====
         function renderFavoritesGeneric(container, sortableVar) {
