@@ -59,7 +59,8 @@
                     <div class="text-center"><h1 class="text-2xl font-bold text-white">Reichweitenrechner</h1><p class="text-gray-400">Gib deinen aktuellen Akkustand an.</p></div>
                     <div class="text-center"><div class="flex items-center justify-center space-x-4"><button id="minus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">-</button><span id="battery-level-display" class="text-5xl font-black text-orange-500 w-32 text-center">100%</span><button id="plus-btn" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">+</button></div></div>
                     <div><input type="range" id="battery-slider" min="0" max="100" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-orange-500"></div>
-                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label><div class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="mode" id="mode-sport" value="sport" class="hidden" checked><label for="mode-sport" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label></div><div class="w-1/2"><input type="radio" name="mode" id="mode-eco" value="eco" class="hidden"><label for="mode-eco" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label></div></div></div>
+                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrzeug</label><div id="vehicle-selector" class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="vehicle" id="vehicle-sur-ron" value="sur-ron" class="hidden" checked><label for="vehicle-sur-ron" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sur-ron</label></div><div class="w-1/2"><input type="radio" name="vehicle" id="vehicle-artic-leopard" value="artic-leopard" class="hidden"><label for="vehicle-artic-leopard" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Artic Leopard</label></div></div></div>
+                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label><div id="mode-selector" class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="mode" id="mode-sport" value="sport" class="hidden" checked><label for="mode-sport" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label></div><div class="w-1/2"><input type="radio" name="mode" id="mode-eco" value="eco" class="hidden"><label for="mode-eco" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label></div></div></div>
                     <div class="pt-2"><label for="capacity-toggle" class="flex items-center justify-center cursor-pointer"><div class="relative"><input type="checkbox" id="capacity-toggle" class="sr-only peer"><div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-orange-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></div><span class="ml-3 text-sm font-medium text-gray-400">Leistungsdrossel (90% nutzbar)</span></label></div>
                     <div class="bg-gray-900 rounded-xl p-6 text-center"><p class="text-gray-400 text-sm uppercase font-semibold">Verbleibende Reichweite</p><p class="text-4xl md:text-5xl font-extrabold text-white"><span id="range-output">44.7</span> km</p></div>
                 </div>
@@ -136,7 +137,8 @@
                     <div class="text-center"><h1 class="text-2xl font-bold text-white">Reichweitenrechner</h1><p class="text-gray-400">Gib deinen aktuellen Akkustand an.</p></div>
                     <div class="text-center"><div class="flex items-center justify-center space-x-4"><button id="minus-btn-desktop" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">-</button><span id="battery-level-display-desktop" class="text-5xl font-black text-orange-500 w-32 text-center">100%</span><button id="plus-btn-desktop" class="w-12 h-12 bg-gray-700 rounded-full text-3xl font-bold text-white hover:bg-gray-600 active:bg-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-500">+</button></div></div>
                     <div><input type="range" id="battery-slider-desktop" min="0" max="100" value="100" class="w-full h-2 bg-gray-700 rounded-lg appearance-none cursor-pointer range-lg accent-orange-500"></div>
-                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label><div class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="mode-desktop" id="mode-sport-desktop" value="sport" class="hidden" checked><label for="mode-sport-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label></div><div class="w-1/2"><input type="radio" name="mode-desktop" id="mode-eco-desktop" value="eco" class="hidden"><label for="mode-eco-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label></div></div></div>
+                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrzeug</label><div id="vehicle-selector-desktop" class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="vehicle-desktop" id="vehicle-sur-ron-desktop" value="sur-ron" class="hidden" checked><label for="vehicle-sur-ron-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sur-ron</label></div><div class="w-1/2"><input type="radio" name="vehicle-desktop" id="vehicle-artic-leopard-desktop" value="artic-leopard" class="hidden"><label for="vehicle-artic-leopard-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Artic Leopard</label></div></div></div>
+                    <div><label class="block text-sm font-medium text-gray-400 mb-2 text-center">Fahrmodus</label><div id="mode-selector-desktop" class="flex justify-center bg-gray-700 rounded-xl p-1"><div class="w-1/2"><input type="radio" name="mode-desktop" id="mode-sport-desktop" value="sport" class="hidden" checked><label for="mode-sport-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Sport</label></div><div class="w-1/2"><input type="radio" name="mode-desktop" id="mode-eco-desktop" value="eco" class="hidden"><label for="mode-eco-desktop" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">Eco</label></div></div></div>
                     <div class="pt-2"><label for="capacity-toggle-desktop" class="flex items-center justify-center cursor-pointer"><div class="relative"><input type="checkbox" id="capacity-toggle-desktop" class="sr-only peer"><div class="w-11 h-6 bg-gray-700 rounded-full peer peer-focus:ring-2 peer-focus:ring-orange-500/50 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-500"></div></div><span class="ml-3 text-sm font-medium text-gray-400">Leistungsdrossel (90% nutzbar)</span></label></div>
                     <div class="bg-gray-900 rounded-xl p-6 text-center"><p class="text-gray-400 text-sm uppercase font-semibold">Verbleibende Reichweite</p><p class="text-4xl md:text-5xl font-extrabold text-white"><span id="range-output-desktop">44.7</span> km</p></div>
                 </div>
@@ -187,23 +189,57 @@
         // ===== API Keys & Constants =====
         const ORS_API_KEY = 'eyJvcmciOiI1YjNjZTM1OTc4NTExMTAwMDFjZjYyNDgiLCJpZCI6ImIzNTk3Mjc5MTZmNTQyZTdiNWI2MmMxOTJkZDMxNDQ0IiwiaCI6Im11cm11cjY0In0=';
         
-        // Constants derived from sur_ron_data.csv
-        const sportKmPerPercent = 0.4569;
-        const ecoKmPerPercent = 0.5493;
-        
-        const sportPercentPerKm = 1 / sportKmPerPercent;
-        const sportPercentPerMeterUp = 0.02193;
-        const sportPercentPerMeterDown = -0.01823;
+        const vehicleData = {
+            'sur-ron': {
+                name: 'Sur-ron Lightbee',
+                modes: {
+                    sport: {
+                        kmPerPercent: 0.4569,
+                        percentPerKm: 1 / 0.4569,
+                        percentPerMeterUp: 0.02193,
+                        percentPerMeterDown: -0.01823,
+                    },
+                    eco: {
+                        kmPerPercent: 0.5493,
+                        percentPerKm: 1 / 0.5493,
+                        percentPerMeterUp: 0.00727,
+                        percentPerMeterDown: -0.01467,
+                    }
+                }
+            },
+            'artic-leopard': {
+                name: 'Artic Leopard Pro S',
+                modes: {
+                    eco: {
+                        kmPerPercent: 1.3,
+                        percentPerKm: 1 / 1.3,
+                        percentPerMeterUp: 0.0051,
+                        percentPerMeterDown: -0.0103,
+                    },
+                    daily: {
+                        kmPerPercent: 0.975,
+                        percentPerKm: 1 / 0.975,
+                        percentPerMeterUp: 0.010,
+                        percentPerMeterDown: -0.011,
+                    },
+                    sport: {
+                        kmPerPercent: 0.65,
+                        percentPerKm: 1 / 0.65,
+                        percentPerMeterUp: 0.0153,
+                        percentPerMeterDown: -0.012,
+                    }
+                }
+            }
+        };
 
-        const ecoPercentPerKm = 1 / ecoKmPerPercent;
-        const ecoPercentPerMeterUp = 0.00727;
-        const ecoPercentPerMeterDown = -0.01467;
 
         // ===== DOM Elements =====
         const batterySlider = document.getElementById('battery-slider');
         const batteryLevelDisplay = document.getElementById('battery-level-display');
         const rangeOutput = document.getElementById('range-output');
         const modeRadios = document.querySelectorAll('input[name="mode"]');
+        const vehicleRadios = document.querySelectorAll('input[name="vehicle"]');
+        const modeSelector = document.getElementById('mode-selector');
         const capacityToggle = document.getElementById('capacity-toggle');
         const plusBtn = document.getElementById('plus-btn');
         const minusBtn = document.getElementById('minus-btn');
@@ -235,6 +271,8 @@
         const batteryLevelDisplayDesktop = document.getElementById('battery-level-display-desktop');
         const rangeOutputDesktop = document.getElementById('range-output-desktop');
         const modeRadiosDesktop = document.querySelectorAll('input[name="mode-desktop"]');
+        const vehicleRadiosDesktop = document.querySelectorAll('input[name="vehicle-desktop"]');
+        const modeSelectorDesktop = document.getElementById('mode-selector-desktop');
         const capacityToggleDesktop = document.getElementById('capacity-toggle-desktop');
         const plusBtnDesktop = document.getElementById('plus-btn-desktop');
         const minusBtnDesktop = document.getElementById('minus-btn-desktop');
@@ -263,6 +301,7 @@
         let waypoints = [ { label: '', coords: null }, { label: '', coords: null } ];
         let placeToSave = {};
         let activePage = 'calculator'; // calculator, route, favorites
+        let currentVehicle = 'sur-ron';
 
         // ===== Utility Functions =====
         const debounce = (func, delay) => { let timeout; return (...args) => { clearTimeout(timeout); timeout = setTimeout(() => func.apply(this, args), delay); }; };
@@ -282,8 +321,36 @@
         };
 
         // ===== State Management (localStorage) =====
-        function saveState() { const state = { battery: batterySlider.value, mode: document.querySelector('input[name="mode"]:checked')?.value || 'sport', throttled: capacityToggle.checked }; localStorage.setItem('surRonRangeState', JSON.stringify(state)); }
-        function loadState() { const savedState = localStorage.getItem('surRonRangeState'); if (savedState) { const state = JSON.parse(savedState); batterySlider.value = state.battery; batterySliderDesktop.value = state.battery; capacityToggle.checked = state.throttled; capacityToggleDesktop.checked = state.throttled; document.querySelector(`input[name="mode"][value="${state.mode}"]`).checked = true; document.querySelector(`input[name="mode-desktop"][value="${state.mode}"]`).checked = true; } }
+        function saveState() { 
+            const state = { 
+                battery: batterySlider.value, 
+                mode: document.querySelector('input[name="mode"]:checked')?.value || 'sport', 
+                throttled: capacityToggle.checked,
+                vehicle: document.querySelector('input[name="vehicle"]:checked')?.value || 'sur-ron'
+            }; 
+            localStorage.setItem('surRonRangeState', JSON.stringify(state)); 
+        }
+        function loadState() { 
+            const savedState = localStorage.getItem('surRonRangeState'); 
+            if (savedState) { 
+                const state = JSON.parse(savedState); 
+                batterySlider.value = state.battery; 
+                batterySliderDesktop.value = state.battery; 
+                capacityToggle.checked = state.throttled; 
+                capacityToggleDesktop.checked = state.throttled; 
+                
+                currentVehicle = state.vehicle || 'sur-ron';
+                document.querySelector(`input[name="vehicle"][value="${currentVehicle}"]`).checked = true;
+                document.querySelector(`input[name="vehicle-desktop"][value="${currentVehicle}"]`).checked = true;
+
+                updateModeSelector(currentVehicle, false);
+                updateModeSelector(currentVehicle, true);
+
+                const mode = state.mode || Object.keys(vehicleData[currentVehicle].modes)[0];
+                document.querySelector(`input[name="mode"][value="${mode}"]`).checked = true; 
+                document.querySelector(`input[name="mode-desktop"][value="${mode}"]`).checked = true; 
+            } 
+        }
         function getSavedPlaces() { const places = localStorage.getItem('surRonSavedPlaces'); return places ? JSON.parse(places) : []; }
         function setSavedPlaces(places) { localStorage.setItem('surRonSavedPlaces', JSON.stringify(places)); }
         
@@ -326,10 +393,58 @@
             menuIconClose.classList.toggle('hidden', isCalculator);
         }
 
+        function updateModeSelector(vehicle, isDesktop) {
+            const selectorId = isDesktop ? 'mode-selector-desktop' : 'mode-selector';
+            const name = isDesktop ? 'mode-desktop' : 'mode';
+            const modeContainer = document.getElementById(selectorId);
+            const modes = vehicleData[vehicle].modes;
+            const modeKeys = Object.keys(modes);
+
+            let html = '';
+            modeKeys.forEach((key, index) => {
+                const id = `mode-${key}` + (isDesktop ? '-desktop' : '');
+                const checked = index === 0 ? 'checked' : '';
+                const label = key.charAt(0).toUpperCase() + key.slice(1);
+                html += `<div class="w-1/${modeKeys.length}"><input type="radio" name="${name}" id="${id}" value="${key}" class="hidden" ${checked}><label for="${id}" class="mode-label text-center block w-full cursor-pointer rounded-lg border border-transparent p-2 font-semibold">${label}</label></div>`;
+            });
+            modeContainer.innerHTML = html;
+
+            // Re-attach event listeners to the new radio buttons
+            const newModeRadios = document.querySelectorAll(`input[name="${name}"]`);
+            const updateFn = isDesktop ? updateAndSaveDesktop : updateAndSave;
+            newModeRadios.forEach(radio => radio.addEventListener('change', updateFn));
+        }
+
         // ===== Core Calculator Logic =====
-        function calculateRange() { const actualBatteryLevel = parseInt(batterySlider.value); const selectedMode = document.querySelector('input[name="mode"]:checked').value; const isThrottledMode = capacityToggle.checked; let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; batteryLevelDisplay.textContent = `${actualBatteryLevel}%`; rangeOutput.textContent = remainingRange.toFixed(1); }
+        function calculateRange() { 
+            const actualBatteryLevel = parseInt(batterySlider.value); 
+            const selectedMode = document.querySelector('input[name="mode"]:checked')?.value;
+            const isThrottledMode = capacityToggle.checked; 
+            if (!selectedMode) return; // Exit if no mode is selected yet
+
+            const vehicle = vehicleData[currentVehicle];
+            const modeData = vehicle.modes[selectedMode];
+
+            let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; 
+            let remainingRange = usableBatteryLevel * modeData.kmPerPercent;
+            batteryLevelDisplay.textContent = `${actualBatteryLevel}%`; 
+            rangeOutput.textContent = remainingRange.toFixed(1); 
+        }
         function updateAndSave() { calculateRange(); saveState(); }
-        function calculateRangeDesktop() { const actualBatteryLevel = parseInt(batterySliderDesktop.value); const selectedMode = document.querySelector('input[name="mode-desktop"]:checked').value; const isThrottledMode = capacityToggleDesktop.checked; let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; let remainingRange = selectedMode === 'sport' ? usableBatteryLevel * sportKmPerPercent : usableBatteryLevel * ecoKmPerPercent; batteryLevelDisplayDesktop.textContent = `${actualBatteryLevel}%`; rangeOutputDesktop.textContent = remainingRange.toFixed(1); }
+        function calculateRangeDesktop() { 
+            const actualBatteryLevel = parseInt(batterySliderDesktop.value); 
+            const selectedMode = document.querySelector('input[name="mode-desktop"]:checked')?.value; 
+            const isThrottledMode = capacityToggleDesktop.checked; 
+            if (!selectedMode) return;
+
+            const vehicle = vehicleData[currentVehicle];
+            const modeData = vehicle.modes[selectedMode];
+
+            let usableBatteryLevel = isThrottledMode ? Math.max(0, actualBatteryLevel - 10) : actualBatteryLevel; 
+            let remainingRange = usableBatteryLevel * modeData.kmPerPercent; 
+            batteryLevelDisplayDesktop.textContent = `${actualBatteryLevel}%`; 
+            rangeOutputDesktop.textContent = remainingRange.toFixed(1); 
+        }
         function updateAndSaveDesktop() { calculateRangeDesktop(); saveState(); }
 
         // ===== Map & Route Logic =====
@@ -558,17 +673,27 @@
                 
                 mapInstance.fitBounds(newRouteLayer.getBounds(), { padding: [50, 50] });
                 
+                const vehicle = vehicleData[currentVehicle];
                 let sportBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
                 let ecoBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
+                let dailyBattery = parseInt(isDesktop ? batterySliderDesktop.value : batterySlider.value);
+
                 let resultsHtml = '';
                 route.properties.segments.forEach((segment, i) => {
                     const distanceKm = segment.distance / 1000;
                     const ascent = segment.ascent || 0;
                     const descent = segment.descent || 0;
-                    const sportNeeded = (distanceKm * sportPercentPerKm) + (ascent * sportPercentPerMeterUp) + (descent * sportPercentPerMeterDown);
-                    const ecoNeeded = (distanceKm * ecoPercentPerKm) + (ascent * ecoPercentPerMeterUp) + (descent * ecoPercentPerMeterDown);
-                    sportBattery -= sportNeeded;
-                    ecoBattery -= ecoNeeded;
+
+                    const consumption = {};
+                    for (const mode in vehicle.modes) {
+                        const modeData = vehicle.modes[mode];
+                        consumption[mode] = (distanceKm * modeData.percentPerKm) + (ascent * modeData.percentPerMeterUp) + (descent * modeData.percentPerMeterDown);
+                    }
+
+                    sportBattery -= consumption.sport || 0;
+                    ecoBattery -= consumption.eco || 0;
+                    dailyBattery -= consumption.daily || 0;
+
                     const destinationStop = filledWaypoints[i + 1];
 
                     const destinationIndex = i + 1;
@@ -580,14 +705,24 @@
                         markerHtml = destinationIndex;
                     }
 
+                    let batteryHtml = '';
+                    if (consumption.eco) {
+                        batteryHtml += `<div><p class="text-xs text-gray-400">Ankunft (Eco)</p><p class="font-bold ${ecoBattery < 10 ? 'text-red-500' : ''}">${ecoBattery.toFixed(0)}%</p></div>`;
+                    }
+                    if (consumption.daily) {
+                        batteryHtml += `<div><p class="text-xs text-gray-400">Ankunft (Daily)</p><p class="font-bold ${dailyBattery < 10 ? 'text-red-500' : ''}">${dailyBattery.toFixed(0)}%</p></div>`;
+                    }
+                    if (consumption.sport) {
+                        batteryHtml += `<div><p class="text-xs text-gray-400">Ankunft (Sport)</p><p class="font-bold ${sportBattery < 10 ? 'text-red-500' : ''}">${sportBattery.toFixed(0)}%</p></div>`;
+                    }
+
                     resultsHtml += `<div class="p-3 bg-gray-700 rounded-lg flex items-start space-x-3">
                         <div class="bg-orange-600 text-white w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold flex-shrink-0 mt-1">${markerHtml}</div>
                         <div>
                             <p class="font-bold">Ankunft bei: ${destinationStop.label.substring(0, 40)}...</p>
                             <p class="text-sm text-gray-400">Etappe: ${distanceKm.toFixed(1)} km, ${ascent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${descent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p>
-                            <div class="grid grid-cols-2 gap-2 pt-1 text-center">
-                                <div><p class="text-xs text-gray-400">Ankunft (Sport)</p><p class="font-bold ${sportBattery < 10 ? 'text-red-500' : ''}">${sportBattery.toFixed(0)}%</p></div>
-                                <div><p class="text-xs text-gray-400">Ankunft (Eco)</p><p class="font-bold ${ecoBattery < 10 ? 'text-red-500' : ''}">${ecoBattery.toFixed(0)}%</p></div>
+                            <div class="grid grid-cols-${Object.keys(consumption).length} gap-2 pt-1 text-center">
+                                ${batteryHtml}
                             </div>
                         </div>
                     </div>`;
@@ -607,11 +742,29 @@
                     returnDist = returnSegment.distance / 1000;
                     const returnAscent = returnSegment.ascent || 0;
                     const returnDescent = returnSegment.descent || 0;
-                    const sportReturnNeeded = (returnDist * sportPercentPerKm) + (returnAscent * sportPercentPerMeterUp) + (returnDescent * sportPercentPerMeterDown);
-                    const ecoReturnNeeded = (returnDist * ecoPercentPerKm) + (returnAscent * ecoPercentPerMeterUp) + (returnDescent * ecoPercentPerMeterDown);
-                    const finalSportBattery = sportBattery - sportReturnNeeded;
-                    const finalEcoBattery = ecoBattery - ecoReturnNeeded;
-                    returnTripHtml = `<div class="p-3 mt-3 bg-gray-900 rounded-lg border border-dashed border-gray-600"><p class="font-bold">Direkter Rückweg</p><p class="text-sm text-gray-400">Distanz: ${returnDist.toFixed(1)} km, ${returnAscent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${returnDescent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p><div class="grid grid-cols-2 gap-2 pt-1 text-center"><div><p class="text-xs text-gray-400">Ankunft Zuhause (Sport)</p><p class="font-bold ${finalSportBattery < 10 ? 'text-red-500' : ''}">${finalSportBattery > 0 ? finalSportBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div><div><p class="text-xs text-gray-400">Ankunft Zuhause (Eco)</p><p class="font-bold ${finalEcoBattery < 10 ? 'text-red-500' : ''}">${finalEcoBattery > 0 ? finalEcoBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div></div></div>`;
+
+                    const returnConsumption = {};
+                    for (const mode in vehicle.modes) {
+                        const modeData = vehicle.modes[mode];
+                        returnConsumption[mode] = (returnDist * modeData.percentPerKm) + (returnAscent * modeData.percentPerMeterUp) + (returnDescent * modeData.percentPerMeterDown);
+                    }
+
+                    const finalSportBattery = sportBattery - (returnConsumption.sport || 0);
+                    const finalEcoBattery = ecoBattery - (returnConsumption.eco || 0);
+                    const finalDailyBattery = dailyBattery - (returnConsumption.daily || 0);
+
+                    let returnBatteryHtml = '';
+                    if (returnConsumption.eco) {
+                        returnBatteryHtml += `<div><p class="text-xs text-gray-400">Ankunft Zuhause (Eco)</p><p class="font-bold ${finalEcoBattery < 10 ? 'text-red-500' : ''}">${finalEcoBattery > 0 ? finalEcoBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div>`;
+                    }
+                    if (returnConsumption.daily) {
+                        returnBatteryHtml += `<div><p class="text-xs text-gray-400">Ankunft Zuhause (Daily)</p><p class="font-bold ${finalDailyBattery < 10 ? 'text-red-500' : ''}">${finalDailyBattery > 0 ? finalDailyBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div>`;
+                    }
+                    if (returnConsumption.sport) {
+                        returnBatteryHtml += `<div><p class="text-xs text-gray-400">Ankunft Zuhause (Sport)</p><p class="font-bold ${finalSportBattery < 10 ? 'text-red-500' : ''}">${finalSportBattery > 0 ? finalSportBattery.toFixed(0) + '%' : 'Nicht möglich'}</p></div>`;
+                    }
+
+                    returnTripHtml = `<div class="p-3 mt-3 bg-gray-900 rounded-lg border border-dashed border-gray-600"><p class="font-bold">Direkter Rückweg</p><p class="text-sm text-gray-400">Distanz: ${returnDist.toFixed(1)} km, ${returnAscent.toFixed(0)}m <span class="text-green-400 font-semibold">▲</span>, ${returnDescent.toFixed(0)}m <span class="text-red-400 font-semibold">▼</span></p><div class="grid grid-cols-${Object.keys(returnConsumption).length} gap-2 pt-1 text-center">${returnBatteryHtml}</div></div>`;
                 }
 
                 // Add total distance summary
@@ -1111,7 +1264,13 @@ ${trkpts}
         // Mobile Listeners
         batterySlider.addEventListener('input', updateAndSave);
         capacityToggle.addEventListener('change', updateAndSave);
-        modeRadios.forEach(radio => radio.addEventListener('change', updateAndSave));
+        vehicleRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentVehicle = e.target.value;
+                updateModeSelector(currentVehicle, false);
+                updateAndSave();
+            });
+        });
         plusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) < 100) { batterySlider.value = parseInt(batterySlider.value) + 1; batterySlider.dispatchEvent(new Event('input')); } });
         minusBtn.addEventListener('click', () => { if (parseInt(batterySlider.value) > 0) { batterySlider.value = parseInt(batterySlider.value) - 1; batterySlider.dispatchEvent(new Event('input')); } });
         menuButton.addEventListener('click', () => { 
@@ -1134,7 +1293,13 @@ ${trkpts}
         // Desktop Listeners
         batterySliderDesktop.addEventListener('input', updateAndSaveDesktop);
         capacityToggleDesktop.addEventListener('change', updateAndSaveDesktop);
-        modeRadiosDesktop.forEach(radio => radio.addEventListener('change', updateAndSaveDesktop));
+        vehicleRadiosDesktop.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                currentVehicle = e.target.value;
+                updateModeSelector(currentVehicle, true);
+                updateAndSaveDesktop();
+            });
+        });
         plusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) < 100) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) + 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
         minusBtnDesktop.addEventListener('click', () => { if (parseInt(batterySliderDesktop.value) > 0) { batterySliderDesktop.value = parseInt(batterySliderDesktop.value) - 1; batterySliderDesktop.dispatchEvent(new Event('input')); } });
         addStopBtnDesktop.addEventListener('click', addStopDesktop);
