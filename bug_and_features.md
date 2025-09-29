@@ -3,4 +3,4 @@
 #Sobald du ein fehler oder features gefixt/hinzugefügt hast, gib mir einmal commit message, damit man es committen kann. Tue dies erst, nachdem der Anwender bestätigt hat, das es erfolgreich implementiert wurde
 
 Feature:
-Ist es möglich, mehrere Startpunkte festzulegen, zb für mehrere fahrer und dann berechnen zu lassen, wo der beste treffpunkt der für alle gleichlang ist?
+Ich würde gerne die favoriten exportieren und importieren können, um es beispielsweise auf einem anderem Gerät hinzufügen zu können. Bau das ins Menü von Favoriten verwalten ein

@@ -100,6 +100,10 @@
                         <h1 class="text-2xl font-bold text-white">Favoriten</h1>
                         <button id="back-to-route-btn" class="text-sm text-orange-400 hover:text-orange-500">Zurück</button>
                     </div>
+                    <div class="flex space-x-2">
+                        <button id="import-favorites-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Import</button>
+                        <button id="export-favorites-btn" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Export</button>
+                    </div>
                     <div id="favorites-list-container" class="space-y-2"></div>
                 </div>
             </div>
@@ -145,6 +149,7 @@
     </div>
 
     <input type="file" id="gpx-file-input" class="hidden" accept=".gpx,application/gpx+xml,text/xml"/>
+    <input type="file" id="favorites-file-input" class="hidden" accept=".json,application/json"/>
 
     <!-- Save Place Modal -->
     <div id="save-place-modal" class="hidden fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4">
@@ -168,6 +173,10 @@
             <div class="flex justify-between items-center">
                 <h1 class="text-2xl font-bold text-white">Favoriten verwalten</h1>
                 <button id="back-to-route-btn-desktop" class="text-gray-400 hover:text-white">&times;</button>
+            </div>
+            <div class="flex space-x-2">
+                <button id="import-favorites-btn-desktop" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Import</button>
+                <button id="export-favorites-btn-desktop" class="w-full bg-gray-600 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded-lg">Export</button>
             </div>
             <div id="favorites-list-container-desktop" class="space-y-2 max-h-[60vh] overflow-y-auto"></div>
         </div>
@@ -218,6 +227,8 @@
         const backToRouteBtn = document.getElementById('back-to-route-btn');
         const favoritesListContainer = document.getElementById('favorites-list-container');
         const calculateMeetingPointBtn = document.getElementById('calculate-meeting-point-btn');
+        const importFavoritesBtn = document.getElementById('import-favorites-btn');
+        const exportFavoritesBtn = document.getElementById('export-favorites-btn');
 
         // Desktop Elements
         const batterySliderDesktop = document.getElementById('battery-slider-desktop');
@@ -236,12 +247,15 @@
         const favoritesListContainerDesktop = document.getElementById('favorites-list-container-desktop');
         const backToRouteBtnDesktop = document.getElementById('back-to-route-btn-desktop');
         const calculateMeetingPointBtnDesktop = document.getElementById('calculate-meeting-point-btn-desktop');
+        const importFavoritesBtnDesktop = document.getElementById('import-favorites-btn-desktop');
+        const exportFavoritesBtnDesktop = document.getElementById('export-favorites-btn-desktop');
 
 
         // GPX Import Elements
         const importGpxBtn = document.getElementById('import-gpx-btn');
         const importGpxBtnDesktop = document.getElementById('import-gpx-btn-desktop');
         const gpxFileInput = document.getElementById('gpx-file-input');
+        const favoritesFileInput = document.getElementById('favorites-file-input');
 
 
         // ===== State & Map Variables =====
@@ -947,6 +961,82 @@ ${trkpts}
             }
         }
 
+        // ===== Favorites Import/Export =====
+        function exportFavorites() {
+            const places = getSavedPlaces();
+            if (places.length === 0) {
+                alert("Keine Favoriten zum Exportieren vorhanden.");
+                return;
+            }
+            const dataStr = JSON.stringify(places, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'surron-favorites.json';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function importFavorites() {
+            favoritesFileInput.click();
+        }
+
+        function handleFavoritesFile(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const importedPlaces = JSON.parse(event.target.result);
+                    if (!Array.isArray(importedPlaces)) {
+                        throw new Error("Die importierte Datei hat nicht das richtige Format.");
+                    }
+
+                    const currentPlaces = getSavedPlaces();
+                    const currentPlaceIds = new Set(currentPlaces.map(p => p.id));
+                    
+                    let addedCount = 0;
+                    let skippedCount = 0;
+
+                    importedPlaces.forEach(place => {
+                        if (place.id && place.name && place.label && place.coords) {
+                            if (!currentPlaceIds.has(place.id)) {
+                                currentPlaces.push(place);
+                                addedCount++;
+                            } else {
+                                skippedCount++;
+                            }
+                        } else {
+                            console.warn('Skipping invalid place object during import:', place);
+                        }
+                    });
+
+                    setSavedPlaces(currentPlaces);
+                    if (window.innerWidth >= 1024) {
+                        renderFavoritesDesktop();
+                    } else {
+                        renderFavorites();
+                    }
+
+                    alert(`${addedCount} Favorit(en) wurden importiert. ${skippedCount} Duplikat(e) wurden übersprungen.`);
+
+                } catch (error) {
+                    console.error("Fehler beim Importieren der Favoriten:", error);
+                    alert("Fehler beim Importieren der Favoriten: " + error.message);
+                }
+            };
+            reader.onerror = () => {
+                alert("Fehler beim Lesen der Datei.");
+            };
+            reader.readAsText(file);
+            e.target.value = null; // Reset input
+        }
+
+
         // ===== Favorites Logic =====
         function renderFavoritesGeneric(container, sortableVar) {
             if (sortableVar) sortableVar.destroy();
@@ -1014,6 +1104,8 @@ ${trkpts}
         manageFavoritesBtn.addEventListener('click', () => { renderFavorites(); showPage('favorites'); });
         backToRouteBtn.addEventListener('click', () => showPage('route'));
         calculateMeetingPointBtn.addEventListener('click', calculateMeetingPoint);
+        exportFavoritesBtn.addEventListener('click', exportFavorites);
+        importFavoritesBtn.addEventListener('click', importFavorites);
 
         // Desktop Listeners
         batterySliderDesktop.addEventListener('input', updateAndSaveDesktop);
@@ -1026,11 +1118,14 @@ ${trkpts}
         manageFavoritesBtnDesktop.addEventListener('click', () => { renderFavoritesDesktop(); favoritesModalDesktop.classList.remove('hidden'); });
         backToRouteBtnDesktop.addEventListener('click', () => favoritesModalDesktop.classList.add('hidden'));
         calculateMeetingPointBtnDesktop.addEventListener('click', calculateMeetingPoint);
+        exportFavoritesBtnDesktop.addEventListener('click', exportFavorites);
+        importFavoritesBtnDesktop.addEventListener('click', importFavorites);
 
         // GPX Import Listeners
         importGpxBtn.addEventListener('click', () => gpxFileInput.click());
         importGpxBtnDesktop.addEventListener('click', () => gpxFileInput.click());
         gpxFileInput.addEventListener('change', handleGpxFile);
+        favoritesFileInput.addEventListener('change', handleFavoritesFile);
 
         // Shared Listeners
         confirmSaveBtn.addEventListener('click', confirmSavePlace);
