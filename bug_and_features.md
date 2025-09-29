@@ -1,6 +1,3 @@
 #Lösche die Zeilen der Features oder Bugs, wenn dieser behoben oder das Feature importiert wurde. Tue dies erst, nachdem der Anwender das bestätigt hat
 #Arbeite die liste immer 1 nach dem anderen ab und das von oben nach unten
-#Sobald du ein fehler oder features gefixt/hinzugefügt hast, gib mir einmal commit message, damit man es committen kann. Tue dies erst, nachdem der Anwender bestätigt hat, das es erfolgreich implementiert wurde
-
-Feature:
-Ich würde gerne die favoriten exportieren und importieren können, um es beispielsweise auf einem anderem Gerät hinzufügen zu können. Bau das ins Menü von Favoriten verwalten ein
+#Sobald du ein fehler oder features gefixt/hinzugefügt hast, gib mir einmal commit message, damit man es committen kann. Den Commit selber tue ich. Von dir brauche ich nur die message. Tue dies erst, nachdem der Anwender bestätigt hat, das es erfolgreich implementiert wurde
