@@ -391,8 +391,8 @@
             document.querySelector(selector).querySelectorAll('.current-loc-btn').forEach(btn => { btn.addEventListener('click', getCurrentLocation); });
         }
 
-        function addStop() { waypoints.splice(waypoints.length - 1, 0, { label: '', coords: null }); renderStops(); }
-        function addStopDesktop() { waypoints.splice(waypoints.length - 1, 0, { label: '', coords: null }); renderStopsDesktop(); }
+        function addStop() { waypoints.push({ label: '', coords: null }); renderStops(); }
+        function addStopDesktop() { waypoints.push({ label: '', coords: null }); renderStopsDesktop(); }
 
         async function handleAutocomplete(e) {
             const input = e.target;
